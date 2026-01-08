@@ -6,28 +6,116 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body { font-family:'Segoe UI',sans-serif; background:#fafafa; margin:0; }
-        nav { background:linear-gradient(to right,#ff3c00,#ff6e40); color:white;
-              padding:15px 30px; display:flex; justify-content:space-between; align-items:center; }
-        .logo { height:45px; border-radius:5px; }
-        .title { font-size:20px; font-weight:bold; }
-        .nav-links { list-style:none; display:flex; gap:25px; }
-        .nav-links li a { color:white; text-decoration:none; font-size:16px; font-weight:500; }
+        
+        nav { 
+            background: linear-gradient(to right, #ff3c00, #ff6e40);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { height: 45px; border-radius: 5px; }
+        .title { font-size: 20px; font-weight: bold; }
+        .nav-links { list-style: none; display: flex; gap: 25px; }
+        .nav-links li a { color: white; text-decoration: none; font-size: 16px; font-weight: 500; }
 
-        .container { max-width:1000px; margin:40px auto; padding:30px; background:white;
-                     border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.15); }
-        h2 { text-align:center; color:#ff3c00; margin-bottom:25px; }
+        /* Hero Section */
+        .hero {
+            background: url('https://via.placeholder.com/1920x500/ff3c00/ffffff') center/cover no-repeat;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            border-bottom: 3px solid #ff6e40;
+        }
+        .hero h1 {
+            font-size: 40px;
+            font-weight: bold;
+        }
+        .hero p {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        .hero button {
+            padding: 12px 20px;
+            background-color: #ff3c00;
+            color: white;
+            border: none;
+            font-weight: bold;
+            font-size: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        .hero button:hover {
+            background-color: #e03a00;
+        }
 
-        .facilities { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; margin-bottom:30px; }
-        .facility-card { flex:1 1 300px; border:2px solid #ccc; border-radius:8px; padding:15px;
-                         background:#fafafa; text-align:center; transition:.3s; }
-        .facility-card:hover { transform:translateY(-6px); border-color:#ff3c00;
-                               box-shadow:0 12px 24px rgba(255,60,0,0.12); }
-        .facility-card img { width:100%; height:180px; object-fit:cover; border-radius:6px; }
-        .facility-card h3 { margin-top:10px; }
-        .facility-desc { margin:10px 0; color:#444; font-size:14px; }
+        /* Main Content */
+        .container { max-width: 1000px; margin: 40px auto; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.15); }
+        h2 { text-align: center; color: #ff3c00; margin-bottom: 25px; font-size: 28px; }
+
+        .facilities { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-bottom: 30px; }
+        .facility-card { 
+            flex: 1 1 300px; 
+            border: 2px solid #ccc; 
+            border-radius: 8px; 
+            padding: 20px;
+            background: #fafafa; 
+            text-align: center; 
+            transition: .3s; 
+            position: relative;
+        }
+        .facility-card:hover { 
+            transform: translateY(-6px); 
+            border-color: #ff3c00;
+            box-shadow: 0 12px 24px rgba(255,60,0,0.12);
+        }
+        .facility-card img { 
+            width: 100%; 
+            height: 180px; 
+            object-fit: cover; 
+            border-radius: 6px; 
+        }
+        .facility-card h3 { 
+            margin-top: 10px; 
+            font-size: 20px; 
+            font-weight: bold;
+        }
+        .facility-desc { 
+            margin: 10px 0; 
+            color: #444; 
+            font-size: 14px; 
+        }
         .book-now-btn {
-            display:inline-block; margin-top:10px; padding:10px 16px; border-radius:6px;
-            text-decoration:none; font-weight:600; background:#ff3c00; color:white; cursor:pointer;
+            display: inline-block; 
+            margin-top: 10px; 
+            padding: 10px 16px; 
+            border-radius: 6px;
+            text-decoration: none; 
+            font-weight: 600; 
+            background: #ff3c00; 
+            color: white; 
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .book-now-btn:hover {
+            background-color: #e03a00;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .facilities {
+                flex-direction: column;
+                gap: 20px;
+            }
+            .hero h1 { font-size: 30px; }
+            .hero p { font-size: 16px; }
+            .hero button { font-size: 14px; padding: 10px 18px; }
+            .facility-card { flex: 1 1 100%; }
         }
     </style>
 </head>
@@ -46,6 +134,16 @@
     </ul>
 </nav>
 
+<!-- HERO SECTION -->
+<section class="hero">
+    <div>
+        <h1>Book Your Favorite Facility</h1>
+        <p>Choose from futsal, takraw, and multipurpose hall for your next event or match.</p>
+        <button onclick="location.href='{{ route('customer.booking') }}'">Book Now</button>
+    </div>
+</section>
+
+<!-- FACILITY SELECTION -->
 <div class="container">
     <h2>Choose a Facility</h2>
     <div class="facilities">

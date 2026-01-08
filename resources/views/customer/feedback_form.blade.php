@@ -173,7 +173,7 @@ footer { background: var(--main-orange); color: #fff; text-align: center; paddin
 </div>
 
 <footer>
-    &copy; {{ date('Y') }} Futsal Takraw & Hall Booking System. All rights reserved.
+    &copy; {{ date('Y') }} Facilities Booking System. All rights reserved.
 </footer>
 
 <script>

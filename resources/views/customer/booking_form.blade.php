@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Book {{ $facility['name'] }} | PKTDR Booking System</title>
+<title>Book Basketball | PKTDR Booking System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <!-- Google Fonts -->
@@ -238,67 +239,161 @@ footer { background: var(--main-orange); color:#fff; text-align:center; padding:
     background: #ffc947; /* slightly brighter on hover */
 }
 
+/* Pricing Schedule Info */
+.pricing-schedule-info {
+    background: linear-gradient(135deg, #fff9f0, #ffe6cc);
+    border-left: 4px solid var(--main-orange);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(255, 60, 0, 0.1);
+}
 
+.pricing-schedule-info h4 {
+    color: var(--main-orange);
+    font-size: 18px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.schedule-description {
+    color: #666;
+    font-size: 13px;
+    margin-top: 8px;
+    margin-bottom: 0;
+    font-style: italic;
+    padding-left: 28px;
+    line-height: 1.4;
+}
+
+.pricing-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pricing-list li {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 15px;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.pricing-list li:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.time-range {
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.time-range i {
+    color: var(--main-orange);
+}
+
+.price-tag {
+    background: var(--main-orange);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 14px;
+}
 
 </style>
 </head>
 <body>
 
-@php $customer = Auth::guard('customers')->user(); @endphp
 
 <!-- Navigation -->
 <nav>
     <div class="nav-left">
-        <img src="{{ asset('images/logo.jpeg') }}" alt="Logo" class="logo">
+        <img src="https://pktdr.online/images/logo.jpeg" alt="Logo" class="logo">
         <span class="title">PKTDR Booking System</span>
     </div>
     <span class="menu-toggle" onclick="toggleMenu()">☰</span>
     <ul class="nav-links">
-        <li><a href="{{ url('/customer/dashboard') }}"><i class="fa fa-tachometer-alt"></i> Dashboard</a></li>
-        <li><a href="{{ route('customer.booking') }}"><i class="fa fa-calendar-plus"></i> Book Slot</a></li>
-        <li><a href="{{ route('customer.mybookings') }}"><i class="fa fa-book"></i> My Bookings</a></li>
-        <li><a href="{{ route('customer.feedback.list') }}"><i class="fa fa-comments"></i> Feedback</a></li>
-        <li><a href="{{ route('about') }}"><i class="fa fa-info-circle"></i> About Us</a></li>
-        <li><a href="{{ route('contact') }}"><i class="fa fa-envelope"></i> Contact Us</a></li>
+        <li><a href="https://pktdr.online/customer/dashboard"><i class="fa fa-tachometer-alt"></i> Dashboard</a></li>
+        <li><a href="https://pktdr.online/customer/booking"><i class="fa fa-calendar-plus"></i> Book Slot</a></li>
+        <li><a href="https://pktdr.online/customer/mybookings"><i class="fa fa-book"></i> My Bookings</a></li>
+        <li><a href="https://pktdr.online/customer/feedback"><i class="fa fa-comments"></i> Feedback</a></li>
+        <li><a href="https://pktdr.online/about"><i class="fa fa-info-circle"></i> About Us</a></li>
+        <li><a href="https://pktdr.online/contact"><i class="fa fa-envelope"></i> Contact Us</a></li>
 
-        @if($customer)
-        <li class="user-info">
-            <div class="user-icon" onclick="toggleDropdown()">{{ strtoupper(substr($customer->name,0,1)) }}</div>
-            <span>{{ $customer->name }}</span>
+                <li class="user-info">
+            <div class="user-icon" onclick="toggleDropdown()">A</div>
+            <span>azizir rahim</span>
             <div id="userDropdown">
-                <a href="{{ route('customer.profile') }}"><i class="fa fa-user"></i> My Profile</a>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit"><i class="fa fa-sign-out-alt"></i> Logout</button>
+                <a href="https://pktdr.online/customer/profile"><i class="fa fa-user"></i> My Profile</a>
+                <form method="POST" action="https://pktdr.online/logout">
+                    <input type="hidden" name="_token" value="ZkrArNrLeXO6NT6RwRbh2Dug7FMN5LZigXm4rtQN" autocomplete="off">                    <button type="submit"><i class="fa fa-sign-out-alt"></i> Logout</button>
                 </form>
             </div>
         </li>
-        @else
-        <li><a href="{{ route('login') }}" class="book-now-btn">Login</a></li>
-        @endif
-    </ul>
+            </ul>
 </nav>
 
 
 <!-- Booking Form -->
 <div class="container">
-    <h2>Book {{ $facility['name'] }}</h2>
-    <img src="{{ asset('facility_images/'.$facility['image']) }}" alt="{{ $facility['name'] }}" class="facility-img">
-    <p>{{ $facility['description'] }}</p>
-    <p><strong>Price per Hour:</strong> RM {{ $facility['price'] }}</p>
+    <h2>Book Basketball</h2>
+    <img src="https://pktdr.online/facility_images/1767175070.png" alt="Basketball" class="facility-img">
+    <p>Baik</p>
+    <p><strong>Price per Hour:</strong> RM 70.00</p>
 
-    <form action="{{ route('customer.booking.submit') }}" method="POST" id="bookingForm">
-        @csrf
-        <input type="hidden" name="facility" value="{{ $facility['name'] }}">
-        <input type="hidden" name="price" id="price" value="{{ $facility['price'] }}">
+    <form action="https://pktdr.online/customer/booking/submit" method="POST" id="bookingForm">
+        <input type="hidden" name="_token" value="ZkrArNrLeXO6NT6RwRbh2Dug7FMN5LZigXm4rtQN" autocomplete="off">        <input type="hidden" name="facility" value="Basketball">
+        <input type="hidden" name="price" id="price" value="70.00">
         <input type="hidden" name="start_time" id="start_time">
 <input type="hidden" name="end_time" id="end_time">
 <input type="hidden" name="duration" id="duration">
-<input type="hidden" name="amount" id="amount" value="{{ $facility['price'] }}">
+<input type="hidden" name="amount" id="amount" value="70.00">
 
         <label for="booking_date">Booking Date</label>
         <input type="text" id="booking_date" name="booking_date" placeholder="Select a date" required>
 
+                <div class="pricing-schedule-info">
+            <h4><i class="fa fa-info-circle"></i> Pricing Schedule</h4>
+            <ul class="pricing-list">
+                                <li>
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <span class="time-range">
+                            <i class="fa fa-clock"></i>
+                            6:00 AM - 
+                            6:00 PM
+                        </span>
+                        <span class="price-tag">RM 50/hour</span>
+                    </div>
+                                            <p class="schedule-description">Monday - Sunday
+- Price: RM50/h (6.00AM - 6.00PM)</p>
+                                    </li>
+                                <li>
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <span class="time-range">
+                            <i class="fa fa-clock"></i>
+                            6:01 PM - 
+                            10:00 PM
+                        </span>
+                        <span class="price-tag">RM 70/hour</span>
+                    </div>
+                                            <p class="schedule-description">Monday - Sunday
+- Price: RM70/h (6.00PM - 10.00PM)</p>
+                                    </li>
+                            </ul>
+        </div>
+        
         <label>Available Slots</label>
         <div class="slots-container" id="slots-container">
             <p style="color:#888;">Select a date to view available slots</p>
@@ -311,7 +406,7 @@ footer { background: var(--main-orange); color:#fff; text-align:center; padding:
 
 
         <div class="amount-display">
-            Total Amount: RM <span id="amount-display">{{ $facility['price'] }}</span>
+            Total Amount: RM <span id="amount-display">70.00</span>
         </div>
 
         <button type="submit" class="submit-btn">Confirm Booking</button>
@@ -320,11 +415,13 @@ footer { background: var(--main-orange); color:#fff; text-align:center; padding:
 
 <!-- Footer -->
 <footer>
-    &copy; {{ date('Y') }} Futsal Takraw & Hall Booking. All rights reserved.
+    &copy; 2026 Futsal Takraw & Hall Booking. All rights reserved.
 </footer>
 
 <script>
-    const facility = @json($facility['name']);
+    const facility = "Basketball";
+    const facilityPrice = parseFloat("70.00");
+    const pricingSchedules = [{"id":1,"facility_id":9,"day_type":"All Days","start_time":"06:00:00","end_time":"18:00:00","price_per_hour":"50.00","description":"Monday - Sunday\r\n- Price: RM50\/h (6.00AM - 6.00PM)","created_at":"2025-12-31T10:26:12.000000Z","updated_at":"2025-12-31T10:26:12.000000Z"},{"id":2,"facility_id":9,"day_type":"All Days","start_time":"18:01:00","end_time":"22:00:00","price_per_hour":"70.00","description":"Monday - Sunday\r\n- Price: RM70\/h (6.00PM - 10.00PM)","created_at":"2025-12-31T10:27:55.000000Z","updated_at":"2025-12-31T10:28:17.000000Z"}];
 </script>
 
 
@@ -502,6 +599,38 @@ function highlightRange(start, end) {
     });
 }
 
+// Calculate price based on pricing schedules or flat rate
+function calculateDynamicPrice(startHour, endHour) {
+    // If no pricing schedules, use flat rate
+    if (!pricingSchedules || pricingSchedules.length === 0) {
+        const duration = endHour - startHour;
+        return duration * facilityPrice;
+    }
+    
+    let totalAmount = 0;
+    
+    // Calculate price for each hour
+    for (let hour = startHour; hour < endHour; hour++) {
+        let hourlyRate = facilityPrice; // Default to flat rate
+        
+        // Find applicable pricing schedule for this hour
+        for (let schedule of pricingSchedules) {
+            const scheduleStart = parseInt(schedule.start_time.split(':')[0]);
+            const scheduleEnd = parseInt(schedule.end_time.split(':')[0]);
+            
+            // Check if current hour falls within this schedule
+            if (hour >= scheduleStart && hour < scheduleEnd) {
+                hourlyRate = parseFloat(schedule.price_per_hour);
+                break;
+            }
+        }
+        
+        totalAmount += hourlyRate;
+    }
+    
+    return totalAmount;
+}
+
 function setBooking(startIdx, endIdx) {
     const slots = document.querySelectorAll('.slot');
 
@@ -511,7 +640,8 @@ function setBooking(startIdx, endIdx) {
     const duration = endHour - startHour;
     if (duration < 1) return;
 
-    const total = duration * price;
+    // Calculate total based on pricing schedules
+    const total = calculateDynamicPrice(startHour, endHour);
 
     document.getElementById('start_time').value = startHour + ":00";
     document.getElementById('end_time').value = endHour + ":00";

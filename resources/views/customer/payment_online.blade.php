@@ -284,7 +284,7 @@ footer { background: var(--main-orange); color: #fff; text-align:center; padding
         <input type="hidden" name="payment_method" value="Online Payment">
         <input type="hidden" name="status" value="Pending">
 
-        <label style="font-weight:600; display:block; margin-bottom:8px;">Upload Payment Receipt</label>
+        <label style="font-weight:400; display:block; margin-bottom:8px;">Upload Payment Receipt</label>
         <input type="file" name="receipt" accept="image/*,application/pdf" required style="margin-bottom:20px;">
 
         <button type="submit"><i class="fa fa-credit-card"></i> Confirm Payment</button>
@@ -294,7 +294,7 @@ footer { background: var(--main-orange); color: #fff; text-align:center; padding
 
 <!-- FOOTER -->
 <footer>
-    &copy; {{ date('Y') }} Futsal Takraw & Hall Booking. All rights reserved.
+    &copy; {{ date('Y') }} Facilities Booking System. All rights reserved.
 </footer>
 
 <script>

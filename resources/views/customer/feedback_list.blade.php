@@ -158,6 +158,67 @@ footer { background: var(--main-orange); color: #fff; text-align:center; padding
     .menu-toggle { display:block; }
     .feedback-container { margin:20px 15px; padding:20px; }
 }
+
+@media (max-width: 600px) {
+    .feedback-container {
+        padding: 16px;
+    }
+
+    .feedback-table {
+        border: 0;
+    }
+
+    .feedback-table thead {
+        display: none; /* hide table header */
+    }
+
+    .feedback-table,
+    .feedback-table tbody,
+    .feedback-table tr,
+    .feedback-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .feedback-table tr {
+        background: #fff;
+        margin-bottom: 14px;
+        border-radius: 14px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        overflow: hidden;
+        border: 1px solid #f1f1f1;
+    }
+
+    .feedback-table td {
+        text-align: left;
+        padding: 12px 14px;
+        border: 0;
+        border-bottom: 1px solid #f2f2f2;
+        font-size: 14px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        word-break: break-word;
+    }
+
+    .feedback-table td:last-child {
+        border-bottom: 0;
+    }
+
+    .feedback-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: #ff3c00;
+        min-width: 120px;
+        flex-shrink: 0;
+    }
+
+    /* Nav dropdown nicer on small screens */
+    #userDropdown {
+        right: 0;
+        min-width: 100%;
+    }
+}
 </style>
 </head>
 <body>
@@ -209,34 +270,36 @@ footer { background: var(--main-orange); color: #fff; text-align:center; padding
     @if($feedbacks->isEmpty())
         <p style="text-align:center; font-size:16px;">You haven't submitted any feedback yet.</p>
     @else
-        <table class="feedback-table">
-            <thead>
-                <tr>
-                    <th>Booking ID</th>
-                    <th>Rating</th>
-                    <th>Comment</th>
-                    <th>Reply</th>
-                    <th>Submitted At</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($feedbacks as $feedback)
-                <tr>
-                    <td>{{ $feedback->booking_id }}</td>
-                    <td>{{ $feedback->rating }} ★</td>
-                    <td>{{ $feedback->comment }}</td>
-                    <td>{{ $feedback->reply }}</td>
-                    <td>{{ $feedback->created_at->timezone('Asia/Kuala_Lumpur')->format('d M Y, h:i A') }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="feedback-table">
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Rating</th>
+                        <th>Comment</th>
+                        <th>Reply</th>
+                        <th>Submitted At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($feedbacks as $feedback)
+                    <tr>
+                        <td data-label="Booking ID">{{ $feedback->booking_id }}</td>
+                        <td data-label="Rating">{{ $feedback->rating }} ★</td>
+                        <td data-label="Comment">{{ $feedback->comment }}</td>
+                        <td data-label="Reply">{{ $feedback->reply }}</td>
+                        <td data-label="Submitted At">{{ $feedback->created_at->timezone('Asia/Kuala_Lumpur')->format('d M Y, h:i A') }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     @endif
 </div>
 
 <!-- FOOTER -->
 <footer>
-    &copy; {{ date('Y') }} Futsal Takraw & Hall Booking. All rights reserved.
+    &copy; {{ date('Y') }} Facilities Booking System. All rights reserved.
 </footer>
 
 <script>
