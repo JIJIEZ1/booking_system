@@ -80,6 +80,65 @@
         }
         .user-icon:hover { transform: scale(1.1); }
         .user-info span { font-weight:600; color:#fff; }
+        
+        /* Slider Styles */
+        .slider-container {
+            max-width: 1100px;
+            margin: 30px auto;
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px var(--shadow);
+        }
+        
+        .slider {
+            width: 100%;
+            position: relative;
+        }
+        
+        .slider img {
+            width: 100%;
+            height: 450px; /* Fixed height for consistency */
+            object-fit: cover; /* This ensures images cover the area without distortion */
+            border-radius: 16px;
+            display: block;
+        }
+        
+        /* Slick Slider Dots Styling */
+        .slider-container .slick-dots {
+            bottom: 20px;
+            z-index: 10;
+        }
+        
+        .slider-container .slick-dots li button:before {
+            font-size: 12px;
+            color: #fff;
+            opacity: 0.5;
+        }
+        
+        .slider-container .slick-dots li.slick-active button:before {
+            color: var(--main-orange);
+            opacity: 1;
+        }
+        
+        /* Responsive Slider */
+        @media (max-width: 768px) {
+            .slider-container {
+                margin: 20px 15px;
+                border-radius: 12px;
+            }
+            
+            .slider img {
+                height: 250px; /* Smaller height for mobile */
+                border-radius: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .slider img {
+                height: 200px; /* Even smaller for very small screens */
+            }
+        }
 
         /* Dropdown */
         #userDropdown {
@@ -287,9 +346,12 @@
         $('.slider').slick({
             infinite: true,
             autoplay: true,
-            autoplaySpeed: 2000,
+            autoplaySpeed: 3000,
             dots: true,
-            arrows: false
+            arrows: true,  // Changed from false to true
+            fade: true,    // Optional: adds a fade transition effect
+            cssEase: 'linear',
+            speed: 600
         });
     });
 </script>

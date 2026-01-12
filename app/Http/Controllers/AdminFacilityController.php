@@ -10,10 +10,18 @@ class AdminFacilityController extends Controller
     // ===============================
     // Display all facilities
     // ===============================
-    public function index()
+    public function index(Request $request)
     {
-        $facilities = Facility::all();
-        return view('admin.facilities.index', compact('facilities'));
+        $perPage = $request->get('per_page', 10);
+        $query = Facility::orderBy('facility_id', 'desc');
+
+        if ($perPage === 'All') {
+            $facilities = $query->get();
+        } else {
+            $facilities = $query->paginate($perPage)->withQueryString();
+        }
+
+        return view('admin.facilities.index', compact('facilities', 'perPage'));
     }
 
     // ===============================

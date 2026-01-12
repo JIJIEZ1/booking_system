@@ -141,6 +141,50 @@ footer { background: var(--main-orange); color: #fff; text-align:center; padding
     .nav-links { flex-direction:column; gap:8px; display:none; } 
     .nav-links.active { display:flex; }
     .menu-toggle { display:block; }
+    /* ✅ Fix tabs container for mobile */
+    .container > div[style*="display:flex"] {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        justify-content: flex-start !important; /* ✅ Changed from center */
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        padding-bottom: 5px;
+        gap: 8px; /* ✅ Add spacing between tabs */
+    }
+    
+    /* ✅ Make tabs properly sized */
+    .tab-link {
+        flex-shrink: 0;
+        white-space: nowrap;
+        display: inline-flex !important;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 15px !important; /* ✅ Increased padding */
+        font-size: 14px;
+        margin: 0 !important; /* ✅ Remove margin that causes centering issues */
+    }
+    
+    /* ✅ Ensure icon is visible */
+    .tab-link i {
+        display: inline-flex !important;
+        font-size: 14px;
+        flex-shrink: 0;
+        width: 16px; /* ✅ Fixed width for icon */
+    }
+    
+    /* ✅ Scrollbar styling */
+    .container > div[style*="display:flex"]::-webkit-scrollbar {
+        height: 4px;
+    }
+    
+    .container > div[style*="display:flex"]::-webkit-scrollbar-thumb {
+        background: var(--main-orange);
+        border-radius: 4px;
+    }
+    
+    .container > div[style*="display:flex"]::-webkit-scrollbar-track {
+        background: #f0f0f0;
+    }
 }
 </style>
 
@@ -190,9 +234,9 @@ footer { background: var(--main-orange); color: #fff; text-align:center; padding
 
     <div style="display:flex; justify-content:center; margin-bottom:20px;">
     <button class="tab-link active" onclick="showTab('upcoming')"><i class="fa fa-clock"></i> Upcoming</button>
+    <button class="tab-link" onclick="showTab('unpaid')"><i class="fa fa-credit-card"></i> Unpaid</button>
     <button class="tab-link" onclick="showTab('completed')"><i class="fa fa-check-circle"></i> Completed</button>
     <button class="tab-link" onclick="showTab('cancelled')"><i class="fa fa-times-circle"></i> Cancelled</button>
-    <button class="tab-link" onclick="showTab('unpaid')"><i class="fa fa-credit-card"></i> Unpaid</button>
 </div>
 
 
@@ -401,10 +445,16 @@ let end{{ $booking->id }} = new Date("{{ $booking->booking_date }} {{ $booking->
             </p>
             <p class="status completed"><i class="fa fa-check-circle"></i> Completed</p>
 
-            <!-- Feedback Button -->
-            <a href="{{ route('customer.feedback.create', $booking->id) }}" class="btn" style="margin-top:10px;">
-                <i class="fa fa-comment-dots"></i> Give Feedback
-            </a>
+            <!-- ✅ Show feedback button only if no feedback exists -->
+            @if(!$booking->hasFeedback)
+                <a href="{{ route('customer.feedback.create', $booking->id) }}" class="btn" style="margin-top:10px;">
+                    <i class="fa fa-comment-dots"></i> Give Feedback
+                </a>
+            @else
+                <p style="margin-top:10px; color: #28a745; font-weight: 600;">
+                    <i class="fa fa-check-circle"></i> Feedback Submitted
+                </p>
+            @endif
         </div>
     @empty
         <p class="empty">No completed bookings.</p>
@@ -440,7 +490,9 @@ let end{{ $booking->id }} = new Date("{{ $booking->booking_date }} {{ $booking->
 
 </div>
 
-<footer>&copy; {{ date('Y') }} Futsal Takraw & Hall Booking. All rights reserved.</footer>
+<footer>
+    &copy; {{ date('Y') }} Facilities Booking System. All rights reserved.
+</footer>
 
 <script>
 

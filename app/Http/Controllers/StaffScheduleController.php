@@ -35,14 +35,15 @@ class StaffScheduleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'facility'   => 'required|string',
+            'facility_type'   => 'required|string',
             'date'       => 'required|date',
             'start_time' => 'required',
             'end_time'   => 'required|after:start_time',
+            'status'     => 'required|in:Available,Blocked,Booked',
         ]);
 
         // Check overlapping schedules
-        $overlapSchedule = Schedule::where('facility', $request->facility)
+        $overlapSchedule = Schedule::where('facility_type', $request->facility_type)
             ->where('date', $request->date)
             ->where(function ($q) use ($request) {
                 $q->where('start_time', '<', $request->end_time)
@@ -57,14 +58,11 @@ class StaffScheduleController extends Controller
         }
 
         // Check overlapping bookings
-        $overlapBooking = Booking::where('facility', $request->facility)
+        $overlapBooking = Booking::where('facility', $request->facility_type)
             ->where('booking_date', $request->date)
             ->where(function ($q) use ($request) {
-                $q->where('booking_time', '<', $request->end_time)
-                  ->whereRaw(
-                      "ADDTIME(booking_time, SEC_TO_TIME(duration * 3600)) > ?",
-                      [$request->start_time]
-                  );
+                $q->where('start_time', '<', $request->end_time)
+                  ->where('end_time', '>', $request->start_time);
             })
             ->whereIn('status', ['Success','Paid'])
             ->exists();
@@ -83,16 +81,16 @@ class StaffScheduleController extends Controller
         // Create schedule
         Schedule::create([
             'schedule_id' => $scheduleId,
-            'facility'    => $request->facility,
+            'facility_type' => $request->facility_type,
             'date'        => $request->date,
             'start_time'  => $request->start_time,
             'end_time'    => $request->end_time,
-            'status'      => 'Blocked',
+            'status'      => $request->status,
         ]);
 
         return redirect()
             ->route('staff.schedule.index')
-            ->with('success', 'Schedule blocked successfully.');
+            ->with('success', 'Schedule created successfully.');
     }
 
     // ================================
@@ -114,14 +112,15 @@ class StaffScheduleController extends Controller
         $schedule = Schedule::where('schedule_id', $id)->firstOrFail();
 
         $request->validate([
-            'facility'   => 'required|string',
+            'facility_type'   => 'required|string',
             'date'       => 'required|date',
             'start_time' => 'required',
             'end_time'   => 'required|after:start_time',
+            'status'     => 'required|in:Available,Blocked,Booked',
         ]);
 
         // Check overlapping schedules
-        $overlapSchedule = Schedule::where('facility', $request->facility)
+        $overlapSchedule = Schedule::where('facility_type', $request->facility_type)
             ->where('date', $request->date)
             ->where('schedule_id', '!=', $schedule->schedule_id)
             ->where(function ($q) use ($request) {
@@ -137,14 +136,11 @@ class StaffScheduleController extends Controller
         }
 
         // Check overlapping bookings
-        $overlapBooking = Booking::where('facility', $request->facility)
+        $overlapBooking = Booking::where('facility', $request->facility_type)
             ->where('booking_date', $request->date)
             ->where(function ($q) use ($request) {
-                $q->where('booking_time', '<', $request->end_time)
-                  ->whereRaw(
-                      "ADDTIME(booking_time, SEC_TO_TIME(duration * 3600)) > ?",
-                      [$request->start_time]
-                  );
+                $q->where('start_time', '<', $request->end_time)
+                  ->where('end_time', '>', $request->start_time);
             })
             ->whereIn('status', ['Success','Paid'])
             ->exists();
@@ -156,11 +152,11 @@ class StaffScheduleController extends Controller
         }
 
         $schedule->update([
-            'facility'   => $request->facility,
+            'facility_type' => $request->facility_type,
             'date'       => $request->date,
             'start_time' => $request->start_time,
             'end_time'   => $request->end_time,
-            'status'     => 'Blocked',
+            'status'     => $request->status,
         ]);
 
         return redirect()
@@ -176,7 +172,7 @@ class StaffScheduleController extends Controller
         $schedule = Schedule::where('schedule_id', $id)->firstOrFail();
 
         // Prevent delete if bookings exist
-        $hasBooking = Booking::where('facility', $schedule->facility)
+        $hasBooking = Booking::where('facility', $schedule->facility_type)
             ->where('booking_date', $schedule->date)
             ->whereIn('status', ['Success','Paid'])
             ->exists();

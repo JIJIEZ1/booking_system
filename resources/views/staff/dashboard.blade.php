@@ -8,255 +8,527 @@
     $staff = Auth::guard('staff')->user();
 @endphp
 
-<h2 class="page-title">Welcome back, {{ $staff->name }}</h2>
+<div class="dashboard-header">
+    <h2 class="page-title">
+        <i class="fas fa-tachometer-alt"></i> Welcome back, {{ $staff->name }}
+    </h2>
+</div>
 
-<!-- CARDS -->
-<div class="cards">
-    <div class="card card-orange">
-        <h3>Total Customers</h3>
-        <p>{{ $totalCustomers }}</p>
+<!-- STATS CARDS -->
+<div class="stats-grid">
+    <div class="stat-card card-customers">
+        <div class="stat-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-content">
+            <h3>Total Customers</h3>
+            <p class="stat-number">{{ $totalCustomers }}</p>
+        </div>
     </div>
-    <div class="card card-green">
-        <h3>Total Bookings</h3>
-        <p>{{ $totalBookings }}</p>
+    
+    <div class="stat-card card-bookings">
+        <div class="stat-icon">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="stat-content">
+            <h3>Total Bookings</h3>
+            <p class="stat-number">{{ $totalBookings }}</p>
+        </div>
     </div>
-    <div class="card card-blue">
-        <h3>Total Facility</h3>
-        <p>{{ $totalPaidBookings }}</p>
+    
+    <div class="stat-card card-facilities">
+        <div class="stat-icon">
+            <i class="fas fa-building"></i>
+        </div>
+        <div class="stat-content">
+            <h3>Total Facility</h3>
+            <p class="stat-number">{{ $totalPaidBookings }}</p>
+        </div>
     </div>
-    <div class="card card-red">
-        <h3>Total Revenue (MYR)</h3>
-        <p>{{ number_format($totalRevenue,2) }}</p>
+    
+    <div class="stat-card card-revenue">
+        <div class="stat-icon">
+            <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="stat-content">
+            <h3>Total Revenue</h3>
+            <p class="stat-number">RM {{ number_format($totalRevenue,2) }}</p>
+        </div>
     </div>
 </div>
 
 <!-- CHARTS -->
-<div class="charts">
-    <div class="chart-container">
-        <h3>Booking Status Overview</h3>
-        <canvas id="bookingStatusChart"></canvas>
+<div class="charts-grid">
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3><i class="fas fa-chart-pie"></i> Booking Status Overview</h3>
+        </div>
+        <div class="chart-body">
+            <canvas id="bookingStatusChart"></canvas>
+        </div>
     </div>
-    <div class="chart-container">
-        <h3>Monthly Revenue</h3>
-        <canvas id="monthlyRevenueChart"></canvas>
+    
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3><i class="fas fa-chart-bar"></i> Monthly Revenue</h3>
+        </div>
+        <div class="chart-body">
+            <canvas id="monthlyRevenueChart"></canvas>
+        </div>
     </div>
 </div>
-
-<div class="table-container">
-    <h3>Recent Bookings</h3>
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Customer</th>
-                <th>Facility</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($recentBookings as $booking)
-            <tr>
-                <td>{{ $booking->id }}</td>
-                <td>{{ $booking->customer->name ?? '-' }}</td>
-                <td>{{ $booking->facility }}</td>
-                <td>{{ \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') }}</td>
-                <td><span class="status {{ strtolower($booking->status) }}">{{ $booking->status }}</span></td>
-                <td>RM {{ number_format($booking->payment->amount ?? 0,2) }}</td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="6" class="empty">No bookings found</td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
-
 
 @endsection
 
 @section('styles')
 <style>
-.cards {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
+/* ===== CSS Variables ===== */
+:root {
+    --primary-color: #ff5722;
+    --primary-dark: #e64a19;
+    --secondary-color: #3498db;
+    --success-color: #27ae60;
+    --warning-color: #f39c12;
+    --danger-color: #e74c3c;
+    --text-dark: #2c3e50;
+    --text-light: #7f8c8d;
+    --border-color: #ddd;
+    --shadow: 0 2px 8px rgba(0,0,0,0.1);
+    --shadow-hover: 0 4px 12px rgba(0,0,0,0.15);
+    --card-bg: #ffffff;
+}
+
+/* ===== Dashboard Header ===== */
+.dashboard-header {
     margin-bottom: 30px;
 }
-.card {
-    flex: 1;
-    padding: 20px;
+
+.page-title {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    color: var(--text-dark);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.page-title i {
+    color: var(--primary-color);
+    font-size: 26px;
+}
+
+/* ===== Stats Grid ===== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: var(--card-bg);
     border-radius: 12px;
-    color: #fff;
-    font-weight: 600;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: var(--shadow);
     transition: all 0.3s ease;
-}
-.card h3 { font-size: 18px; margin-bottom: 10px; }
-.card p { font-size: 24px; font-weight: 700; }
-.card-orange { background: linear-gradient(45deg,#ff9f43,#ff6b6b); }
-.card-green  { background: linear-gradient(45deg,#1dd1a1,#10ac84); }
-.card-blue   { background: linear-gradient(45deg,#54a0ff,#2e86de); }
-.card-red    { background: linear-gradient(45deg,#ff6b6b,#ff3c00); }
-
-.chart-container {
-    flex: 1;
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 30px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-}
-.chart-container h3 {
-    font-size: 20px;
-    color: #ff3c00;
-    margin-bottom: 15px;
-}
-.charts {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
 }
 
-@section('styles')
-<style>
-/* ===== CARDS & CHARTS ===== */
-.cards {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-bottom: 30px;
-}
-.card {
-    flex: 1;
-    padding: 20px;
-    border-radius: 12px;
-    color: #fff;
-    font-weight: 600;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    transition: all 0.3s ease;
-}
-.card h3 { font-size: 18px; margin-bottom: 10px; }
-.card p { font-size: 24px; font-weight: 700; }
-.card-orange { background: linear-gradient(45deg,#ff9f43,#ff6b6b); }
-.card-green  { background: linear-gradient(45deg,#1dd1a1,#10ac84); }
-.card-blue   { background: linear-gradient(45deg,#54a0ff,#2e86de); }
-.card-red    { background: linear-gradient(45deg,#ff6b6b,#ff3c00); }
-
-.chart-container {
-    flex: 1;
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 30px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-}
-.chart-container h3 {
-    font-size: 20px;
-    color: #ff3c00;
-    margin-bottom: 15px;
-}
-.charts {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-bottom: 30px;
-}
-
-/* ===== TABLE ===== */
-.table-container {
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-}
-.table-container h3 {
-    margin-bottom: 15px;
-    color: #ff3c00;
-}
-
-.admin-table {
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    border-collapse: collapse;
-}
-.admin-table th {
-    background: #ff5722;
-    color: #fff;
-    padding: 12px 10px;
-    text-align: left;
-    border-radius: 6px 6px 0 0;
-}
-.admin-table td {
-    padding: 12px 10px;
-    border-bottom: 1px solid #eee;
-}
-.admin-table tr:hover {
-    background: #fff3e0;
-    transition: 0.3s;
-}
-.admin-table .empty {
-    text-align: center;
-    color: #888;
-    padding: 20px 0;
+    height: 4px;
+    /*background: linear-gradient(90deg, transparent, currentColor, transparent);*/
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-/* ===== STATUS BADGES ===== */
-.status {
-    padding: 5px 12px;
-    border-radius: 999px;
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+}
+
+.stat-card:hover::before {
+    opacity: 1;
+}
+
+.stat-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: white;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.card-customers .stat-icon {
+    background: linear-gradient(135deg, #ff9f43, #ff6b6b);
+}
+
+.card-bookings .stat-icon {
+    background: linear-gradient(135deg, #1dd1a1, #10ac84);
+}
+
+.card-facilities .stat-icon {
+    background: linear-gradient(135deg, #54a0ff, #2e86de);
+}
+
+.card-revenue .stat-icon {
+    background: linear-gradient(135deg, #ff6b6b, #ff3c00);
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-content h3 {
+    font-size: 14px;
     font-weight: 600;
-    font-size: 12px;
+    color: var(--text-light);
+    margin: 0 0 8px 0;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
-.status.success { background: #d0f0c0; color: #006600; }
-.status.completed { background: #f0f0d0; color: #996600; }
-.status.cancelled { background: #f8d0d0; color: #990000; }
-</style>
-@endsection
 
+.stat-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+    line-height: 1;
+}
+
+/* ===== Charts Grid ===== */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.chart-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+}
+
+.chart-card:hover {
+    box-shadow: var(--shadow-hover);
+}
+
+.chart-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.chart-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chart-header h3 i {
+    color: var(--primary-color);
+    font-size: 20px;
+}
+
+.chart-body {
+    position: relative;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chart-body canvas {
+    max-height: 100%;
+    max-width: 100%;
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 1200px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 24px;
+    }
+    
+    .page-title i {
+        font-size: 22px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .stat-card {
+        padding: 20px;
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+    }
+    
+    .stat-number {
+        font-size: 24px;
+    }
+    
+    .charts-grid {
+        gap: 20px;
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-card {
+        padding: 20px;
+    }
+    
+    .chart-header h3 {
+        font-size: 16px;
+    }
+    
+    .chart-body {
+        height: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-header {
+        margin-bottom: 20px;
+    }
+    
+    .page-title {
+        font-size: 20px;
+        gap: 8px;
+    }
+    
+    .page-title i {
+        font-size: 20px;
+    }
+    
+    .stat-card {
+        padding: 15px;
+        gap: 15px;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+    }
+    
+    .stat-content h3 {
+        font-size: 12px;
+    }
+    
+    .stat-number {
+        font-size: 20px;
+    }
+    
+    .chart-card {
+        padding: 15px;
+    }
+    
+    .chart-header {
+        margin-bottom: 15px;
+        padding-bottom: 12px;
+    }
+    
+    .chart-header h3 {
+        font-size: 14px;
+    }
+    
+    .chart-body {
+        height: 220px;
+    }
+}
+
+/* ===== Animation ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stat-card, .chart-card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+.stat-card:nth-child(4) { animation-delay: 0.4s; }
+.chart-card:nth-child(1) { animation-delay: 0.5s; }
+.chart-card:nth-child(2) { animation-delay: 0.6s; }
 </style>
 @endsection
 
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const bookingStatus = @json($bookingStatus);
-const monthlyRevenue = @json($monthlyRevenue);
+    const bookingStatus = @json($bookingStatus);
+    const monthlyRevenue = @json($monthlyRevenue);
 
-// Booking Status Doughnut Chart
-const ctx1 = document.getElementById('bookingStatusChart').getContext('2d');
-new Chart(ctx1, {
-    type:'doughnut',
-    data:{
-        labels:['Success','Completed','Cancelled'],
-        datasets:[{
-            data:[bookingStatus.Success, bookingStatus.Completed, bookingStatus.Cancelled],
-            backgroundColor:['#f39c12','#27ae60','#e74c3c'],
-            borderWidth:2,
-            borderColor:'#fff'
-        }]
-    },
-    options:{ responsive:true, plugins:{legend:{position:'bottom'}} }
-});
+    // Booking Status Doughnut Chart
+    const ctx1 = document.getElementById('bookingStatusChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'doughnut',
+        data: {
+            labels: ['Success', 'Completed', 'Cancelled'],
+            datasets: [{
+                data: [bookingStatus.Success, bookingStatus.Completed, bookingStatus.Cancelled],
+                backgroundColor: ['#f39c12', '#27ae60', '#e74c3c'],
+                borderWidth: 3,
+                borderColor: '#fff',
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            size: 13,
+                            family: "'Montserrat', sans-serif",
+                            weight: '600'
+                        },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    cornerRadius: 8
+                }
+            }
+        }
+    });
 
-// Monthly Revenue Bar Chart
-const ctx2 = document.getElementById('monthlyRevenueChart').getContext('2d');
-const monthLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-new Chart(ctx2, {
-    type:'bar',
-    data:{
-        labels: monthLabels,
-        datasets:[{
-            label:'Revenue (MYR)',
-            data: monthlyRevenue,
-            backgroundColor:'rgba(255,60,0,0.8)',
-            borderRadius:5
-        }]
-    },
-    options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}, x:{grid:{display:false}}} }
-});
+    // Monthly Revenue Bar Chart
+    const ctx2 = document.getElementById('monthlyRevenueChart').getContext('2d');
+    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: monthLabels,
+            datasets: [{
+                label: 'Revenue (MYR)',
+                data: monthlyRevenue,
+                backgroundColor: 'rgba(255, 87, 34, 0.8)',
+                hoverBackgroundColor: 'rgba(255, 87, 34, 1)',
+                borderRadius: 8,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            return 'RM ' + context.parsed.y.toFixed(2);
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 12,
+                            family: "'Montserrat', sans-serif"
+                        },
+                        callback: function(value) {
+                            return 'RM ' + value;
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 12,
+                            family: "'Montserrat', sans-serif",
+                            weight: '600'
+                        }
+                    }
+                }
+            }
+        }
+    });
 </script>
 @endsection

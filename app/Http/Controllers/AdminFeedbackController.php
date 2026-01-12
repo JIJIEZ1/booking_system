@@ -8,13 +8,18 @@ use Illuminate\Http\Request;
 class AdminFeedbackController extends Controller
 {
     // List all feedback
-    public function index()
+    public function index(Request $request)
     {
-        $feedbacks = Feedback::with('customer', 'booking')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $perPage = $request->get('per_page', 10);
+        $query = Feedback::with('customer', 'booking')->orderBy('created_at', 'desc');
 
-        return view('admin.feedback.index', compact('feedbacks'));
+        if ($perPage === 'All') {
+            $feedbacks = $query->get();
+        } else {
+            $feedbacks = $query->paginate($perPage)->withQueryString();
+        }
+
+        return view('admin.feedback.index', compact('feedbacks', 'perPage'));
     }
 
     // Show feedback details

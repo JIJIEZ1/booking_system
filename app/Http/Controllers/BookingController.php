@@ -26,7 +26,8 @@ class BookingController extends Controller
     public function create($facilityName)
     {
         $facility = Facility::where('name', $facilityName)->firstOrFail();
-        return view('customer.booking_form', compact('facility'));
+        $pricingSchedules = $facility->pricingSchedules()->orderBy('start_time')->get();
+        return view('customer.booking_form', compact('facility', 'pricingSchedules'));
     }
 
     // ================================
@@ -52,7 +53,9 @@ class BookingController extends Controller
 
     $hours = $start->diffInHours($end);
     $facility = Facility::where('name', $request->facility)->firstOrFail();
-    $amount = $hours * $facility->price;
+    
+    // Calculate amount based on pricing schedules or flat rate
+    $amount = $this->calculateBookingAmount($facility, $start, $end, $hours);
 
     // Overlap check
     $conflict = Booking::where('facility', $request->facility)
@@ -126,9 +129,19 @@ class BookingController extends Controller
         $bookings = Booking::where('customer_id', $customerId)->get();
 
         foreach ($bookings as $booking) {
-            if (in_array($booking->status, ['Paid', 'Success']) && $now->gte($booking->end_time)) {
-                $booking->update(['status' => 'Completed']);
+            if (in_array($booking->status, ['Paid', 'Success'])) {
+                // Create full datetime from booking_date and end_time
+                $bookingEnd = Carbon::parse($booking->booking_date . ' ' . $booking->end_time, 'Asia/Kuala_Lumpur');
+                
+                // Only mark as completed if the booking end time has passed
+                if ($now->gte($bookingEnd)) {
+                    $booking->update(['status' => 'Completed']);
+                }
             }
+            // ✅ Check if feedback exists for this booking
+            $booking->hasFeedback = \App\Models\Feedback::where('booking_id', $booking->id)
+                                                     ->where('customer_id', $customerId)
+                                                     ->exists();
         }
 
         return view('customer.mybookings', [
@@ -172,5 +185,51 @@ class BookingController extends Controller
     }
     return response()->json(['success' => false]);
 }
+
+    // ================================
+    // CALCULATE BOOKING AMOUNT BASED ON PRICING SCHEDULES
+    // ================================
+    private function calculateBookingAmount($facility, $startDateTime, $endDateTime, $totalHours)
+    {
+        // Check if facility has pricing schedules
+        $pricingSchedules = $facility->pricingSchedules()->orderBy('start_time')->get();
+        
+        if ($pricingSchedules->isEmpty()) {
+            // No pricing schedules, use flat rate
+            return $totalHours * $facility->price;
+        }
+        
+        // Calculate amount based on time-based pricing
+        $totalAmount = 0;
+        $currentTime = $startDateTime->copy();
+        
+        while ($currentTime->lessThan($endDateTime)) {
+            $nextHour = $currentTime->copy()->addHour();
+            
+            // Find which pricing schedule applies to this hour
+            $applicableSchedule = null;
+            foreach ($pricingSchedules as $schedule) {
+                $scheduleStart = Carbon::parse($schedule->start_time, 'Asia/Kuala_Lumpur');
+                $scheduleEnd = Carbon::parse($schedule->end_time, 'Asia/Kuala_Lumpur');
+                
+                // Check if current time falls within this schedule
+                $currentTimeOnly = Carbon::parse($currentTime->format('H:i:s'), 'Asia/Kuala_Lumpur');
+                
+                if ($currentTimeOnly->greaterThanOrEqualTo($scheduleStart) && 
+                    $currentTimeOnly->lessThan($scheduleEnd)) {
+                    $applicableSchedule = $schedule;
+                    break;
+                }
+            }
+            
+            // Use schedule price or fall back to facility price
+            $hourlyRate = $applicableSchedule ? $applicableSchedule->price_per_hour : $facility->price;
+            $totalAmount += $hourlyRate;
+            
+            $currentTime = $nextHour;
+        }
+        
+        return $totalAmount;
+    }
 
 }

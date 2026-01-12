@@ -15,10 +15,18 @@ class AdminPaymentController extends Controller
     /**
      * Display all payments.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $payments = Payment::with('customer')->get();
-        return view('admin.payments.index', compact('payments'));
+        $perPage = $request->get('per_page', 10);
+        $query = Payment::with('customer')->orderBy('created_at', 'desc');
+
+        if ($perPage === 'All') {
+            $payments = $query->get();
+        } else {
+            $payments = $query->paginate($perPage)->withQueryString();
+        }
+
+        return view('admin.payments.index', compact('payments', 'perPage'));
     }
 
     /**

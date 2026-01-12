@@ -253,7 +253,7 @@ nav {
 .quick-actions .actions{
     display:grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
+    gap: 24px;
 }
 .action{
     text-decoration:none;
@@ -288,7 +288,10 @@ footer {
 /* Responsive */
 @media(max-width:900px){
     .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .actions{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .actions{ 
+        grid-template-columns: repeat(2, minmax(0, 1fr)); 
+        gap: 20px;  /* Increased from 14px */
+    }
 }
 @media(max-width:768px){
     nav { flex-direction:column; gap:10px; }
@@ -302,7 +305,10 @@ footer {
     .hero-text{ font-size: 14px; }
 
     .grid{ grid-template-columns: 1fr; }
-    .actions{ grid-template-columns: 1fr; }
+    .actions{ 
+        grid-template-columns: 1fr; 
+        gap: 18px;  /* Increased spacing for mobile too */
+    }
     #userDropdown{ right:0; min-width: 100%; }
 }
 </style>
@@ -378,6 +384,7 @@ footer {
     </section>
 
     <!-- QUICK ACTIONS -->
+    
 <h3 class="section-title">Quick Actions</h3>
 <div class="actions">
     <!-- Feedback Action -->

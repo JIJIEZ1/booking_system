@@ -14,14 +14,23 @@ class AdminBookingController extends Controller
     // ===============================
     // List bookings
     // ===============================
-    public function index()
+    public function index(Request $request)
     {
-        $bookings = Booking::with('customer')->get();
+        $perPage = $request->get('per_page', 10);
+        
+        $query = Booking::with('customer')->orderBy('id', 'desc');
+
+        if ($perPage === 'All') {
+            $bookings = $query->get();
+        } else {
+            $bookings = $query->paginate($perPage)->withQueryString();
+        }
+
         $customers = Customer::all();
         $facilities = Facility::all();
 
         return view('admin.bookings.index', compact(
-            'bookings', 'customers', 'facilities'
+            'bookings', 'customers', 'facilities', 'perPage'
         ));
     }
 
@@ -116,27 +125,56 @@ public function getAvailableSlots(Request $request)
 
     $editingId = $request->editing_id ?? null; // Booking being edited
 
-    // CUSTOMER BOOKINGS (PAID / SUCCESS)
-    $bookings = Booking::where('facility', $facility)
+    // // CUSTOMER BOOKINGS (PAID / SUCCESS / COMPLETED)
+    // $bookings = Booking::where('facility', $facility)
+    //     ->whereIn('status', ['Paid', 'Success', 'Completed'])
+    //     ->whereDate('start_time', $date)
+    //     ->when($editingId, function($q) use ($editingId) {
+    //         return $q->where('id', '<>', $editingId); // exclude current booking
+    //     })
+    //     ->get();
+
+    // // UNPAID BOOKINGS (LOCKED SLOTS)
+    // $unpaidBookings = Booking::where('facility', $facility)
+    //     ->where('status', 'Unpaid')
+    //     ->whereDate('start_time', $date)
+    //     ->where('created_at', '>=', $now->copy()->subMinutes(10)) // still within 10-min lock
+    //     ->when($editingId, function($q) use ($editingId) {
+    //         return $q->where('id', '<>', $editingId); // exclude current booking
+    //     })
+    //     ->get();
+    
+    // ✅ PAID/SUCCESS BOOKINGS - always show as booked
+    $paidBookings = Booking::where('facility', $facility)
         ->whereIn('status', ['Paid', 'Success'])
-        ->whereDate('start_time', $date)
+        ->whereDate('booking_date', $date)
         ->when($editingId, function($q) use ($editingId) {
-            return $q->where('id', '<>', $editingId); // exclude current booking
+            return $q->where('id', '<>', $editingId);
         })
         ->get();
 
-    // UNPAID BOOKINGS (LOCKED SLOTS)
-    $unpaidBookings = Booking::where('facility', $facility)
+    // ✅ UNPAID BOOKINGS WITHIN 10-MIN WINDOW (LOCKED)
+    $lockedBookings = Booking::where('facility', $facility)
         ->where('status', 'Unpaid')
-        ->whereDate('start_time', $date)
-        ->where('created_at', '>=', $now->copy()->subMinutes(10)) // still within 10-min lock
+        ->whereDate('booking_date', $date)
+        ->where('created_at', '>=', $now->copy()->subMinutes(10))
         ->when($editingId, function($q) use ($editingId) {
-            return $q->where('id', '<>', $editingId); // exclude current booking
+            return $q->where('id', '<>', $editingId);
+        })
+        ->get();
+
+    // ✅ UNPAID BOOKINGS OUTSIDE 10-MIN WINDOW (EXPIRED BUT NOT CANCELLED)
+    $expiredUnpaidBookings = Booking::where('facility', $facility)
+        ->where('status', 'Unpaid')
+        ->whereDate('booking_date', $date)
+        ->where('created_at', '<', $now->copy()->subMinutes(10))
+        ->when($editingId, function($q) use ($editingId) {
+            return $q->where('id', '<>', $editingId);
         })
         ->get();
 
     // BLOCKED SCHEDULES (ADMIN + STAFF)
-    $schedules = Schedule::where('facility', $facility)
+    $schedules = Schedule::where('facility_type', $facility)
         ->where('status', 'Blocked')
         ->whereDate('date', $date)
         ->get();
@@ -152,27 +190,63 @@ public function getAvailableSlots(Request $request)
         // Past slots
         if ($slotStart->isPast()) $type = 'past';
 
-        // Check customer bookings
-        foreach ($bookings as $b) {
-            $bookingStart = Carbon::parse($b->start_time, $timezone);
-            $bookingEnd   = Carbon::parse($b->end_time, $timezone);
-            if ($slotStart < $bookingEnd && $slotEnd > $bookingStart) { $type = 'booked'; break; }
+        // // Check customer bookings
+        // foreach ($bookings as $b) {
+        //     $bookingStart = Carbon::parse($b->start_time, $timezone);
+        //     $bookingEnd   = Carbon::parse($b->end_time, $timezone);
+        //     if ($slotStart < $bookingEnd && $slotEnd > $bookingStart) { $type = 'booked'; break; }
+        // }
+
+        // // Check unpaid bookings
+        // if ($type === 'free') {
+        //     foreach ($unpaidBookings as $b) {
+        //         $bookingStart = Carbon::parse($b->start_time, $timezone);
+        //         $bookingEnd   = Carbon::parse($b->end_time, $timezone);
+        //         if ($slotStart < $bookingEnd && $slotEnd > $bookingStart) { $type = 'locked'; break; }
+        //     }
+        // }
+        
+        // ✅ Check paid/success bookings
+        if ($type === 'free') {
+            foreach ($paidBookings as $b) {
+                $bookingStart = Carbon::parse($b->booking_date . ' ' . $b->start_time, $timezone);
+                $bookingEnd   = Carbon::parse($b->booking_date . ' ' . $b->end_time, $timezone);
+                if ($slotStart < $bookingEnd && $slotEnd > $bookingStart) {
+                    $type = 'booked';
+                    break;
+                }
+            }
         }
 
-        // Check unpaid bookings
+        // ✅ Check expired unpaid bookings (show as booked)
         if ($type === 'free') {
-            foreach ($unpaidBookings as $b) {
-                $bookingStart = Carbon::parse($b->start_time, $timezone);
-                $bookingEnd   = Carbon::parse($b->end_time, $timezone);
-                if ($slotStart < $bookingEnd && $slotEnd > $bookingStart) { $type = 'locked'; break; }
+            foreach ($expiredUnpaidBookings as $b) {
+                $bookingStart = Carbon::parse($b->booking_date . ' ' . $b->start_time, $timezone);
+                $bookingEnd   = Carbon::parse($b->booking_date . ' ' . $b->end_time, $timezone);
+                if ($slotStart < $bookingEnd && $slotEnd > $bookingStart) {
+                    $type = 'booked';
+                    break;
+                }
+            }
+        }
+
+        // ✅ Check locked unpaid bookings (show as locked - yellow)
+        if ($type === 'free') {
+            foreach ($lockedBookings as $b) {
+                $bookingStart = Carbon::parse($b->booking_date . ' ' . $b->start_time, $timezone);
+                $bookingEnd   = Carbon::parse($b->booking_date . ' ' . $b->end_time, $timezone);
+                if ($slotStart < $bookingEnd && $slotEnd > $bookingStart) {
+                    $type = 'locked';
+                    break;
+                }
             }
         }
 
         // Check blocked schedules
         if ($type === 'free') {
             foreach ($schedules as $s) {
-                $blockStart = Carbon::parse($s->start_time, $timezone);
-                $blockEnd   = Carbon::parse($s->end_time, $timezone);
+                $blockStart = Carbon::parse($s->date . ' ' . $s->start_time, $timezone);
+                $blockEnd   = Carbon::parse($s->date . ' ' . $s->end_time, $timezone);
                 if ($slotStart < $blockEnd && $slotEnd > $blockStart) { $type = 'blocked'; break; }
             }
         }
@@ -185,77 +259,6 @@ public function getAvailableSlots(Request $request)
 
     return response()->json($slots);
 }
-
-public function getAvailableScheduleSlots(Request $request)
-{
-    $facility = $request->facility;
-    $date = $request->date; // YYYY-MM-DD
-    $timezone = 'Asia/Kuala_Lumpur';
-
-    $now = Carbon::now($timezone);
-
-    // CUSTOMER BOOKINGS (PAID / SUCCESS)
-    $bookings = Booking::where('facility', $facility)
-        ->whereIn('status', ['Paid', 'Success'])
-        ->whereDate('start_time', $date)
-        ->get();
-
-    // UNPAID BOOKINGS (LOCKED SLOTS)
-    $unpaidBookings = Booking::where('facility', $facility)
-        ->where('status', 'Unpaid')
-        ->whereDate('start_time', $date)
-        ->where('created_at', '>=', $now->copy()->subMinutes(10)) // still within 10-min lock
-        ->get();
-
-    // BLOCKED SCHEDULES (ADMIN + STAFF)
-    $schedules = Schedule::where('facility', $facility)
-        ->where('status', 'Blocked')
-        ->whereDate('date', $date)
-        ->get();
-
-    $slots = [];
-
-    // Generate slots from 9AM to 9PM
-    for ($hour = 9; $hour <= 21; $hour++) {
-        $slotStart = Carbon::parse($date.' '.sprintf('%02d:00', $hour), $timezone);
-        $slotEnd = $slotStart->copy()->addHour();
-
-        $type = 'free';
-
-        // Check customer bookings
-        foreach ($bookings as $b) {
-            $bookingStart = Carbon::parse($b->start_time, $timezone);
-            $bookingEnd = Carbon::parse($b->end_time, $timezone);
-            if ($slotStart < $bookingEnd && $slotEnd > $bookingStart) { $type = 'booked'; break; }
-        }
-
-        // Check unpaid bookings (locked)
-        if ($type === 'free') {
-            foreach ($unpaidBookings as $b) {
-                $bookingStart = Carbon::parse($b->start_time, $timezone);
-                $bookingEnd = Carbon::parse($b->end_time, $timezone);
-                if ($slotStart < $bookingEnd && $slotEnd > $bookingStart) { $type = 'locked'; break; }
-            }
-        }
-
-        // Check blocked schedules
-        if ($type === 'free') {
-            foreach ($schedules as $s) {
-                $blockStart = Carbon::parse($s->start_time, $timezone);
-                $blockEnd = Carbon::parse($s->end_time, $timezone);
-                if ($slotStart < $blockEnd && $slotEnd > $blockStart) { $type = 'blocked'; break; }
-            }
-        }
-
-        $slots[] = [
-            'time' => $slotStart->format('H:i'),
-            'type' => $type
-        ];
-    }
-
-    return response()->json($slots);
-}
-
 
 
     // ===============================

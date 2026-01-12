@@ -105,6 +105,18 @@ nav{
     margin-bottom:26px;
     font-size:26px;
 }
+        /* PASSWORD TOGGLE */
+        .password-wrapper {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
 
 /* INPUTS */
 .input-wrapper{
@@ -243,14 +255,16 @@ footer{
             <input type="email" name="email" placeholder="Email" value="{{ old('email') }}" required>
         </div>
 
-        <div class="input-wrapper">
+        <div class="input-wrapper password-wrapper">
             <span class="icon">🔒</span>
-            <input type="password" name="password" placeholder="New Password" required>
+            <input type="password" name="password" id="password" placeholder="New Password" required>
+            <span class="toggle-password" onclick="togglePasswordVisibility()">👁</span>
         </div>
 
-        <div class="input-wrapper">
+        <div class="input-wrapper password-wrapper">
             <span class="icon">🔒</span>
-            <input type="password" name="password_confirmation" placeholder="Confirm Password" required>
+            <input type="password" name="password_confirmation" id="password_confirmation" placeholder="Confirm Password" required>
+            <span class="toggle-password" onclick="togglePasswordVisibility()">👁</span>
         </div>
 
         <button type="submit">Reset Password</button>
@@ -267,14 +281,22 @@ footer{
 
 <script>
 /* MENU */
-function toggleMenu(){
-    document.getElementById('navLinks').classList.toggle('active');
-}
-document.addEventListener('click',e=>{
-    const nav=document.getElementById('navLinks');
-    const btn=document.querySelector('.menu-toggle');
-    if(!nav.contains(e.target)&&!btn.contains(e.target)) nav.classList.remove('active');
-});
+    function toggleMenu(){
+        document.getElementById('navLinks').classList.toggle('active');
+    }
+    document.addEventListener('click',e=>{
+        const nav=document.getElementById('navLinks');
+        const btn=document.querySelector('.menu-toggle');
+        if(!nav.contains(e.target)&&!btn.contains(e.target)) nav.classList.remove('active');
+    });
+    /* PASSWORD TOGGLE */
+    function togglePasswordVisibility() {
+        const passwordField = document.getElementById('password');
+        const passwordConfirmationField = document.getElementById('password_confirmation');
+        const type = passwordField.type === 'password' ? 'text' : 'password';
+        passwordField.type = type;
+        passwordConfirmationField.type = type;
+    }
 </script>
 
 </body>

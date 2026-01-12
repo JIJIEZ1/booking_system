@@ -214,7 +214,7 @@ footer {
 
 <!-- Footer -->
 <footer>
-    &copy; {{ date('Y') }} Futsal Takraw & Hall Booking. All rights reserved.
+    &copy; {{ date('Y') }} Facilities Booking System. All rights reserved.
 </footer>
 
 <script>

@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
@@ -17,8 +17,9 @@
     --accent-yellow: #ffc107;
     --text-light: #f5f5f5;
     --text-dark: #333;
-    --card-bg: rgba(255,255,255,0.9);
-    --shadow: rgba(0,0,0,0.3);
+    --card-bg: rgba(255,255,255,0.95);
+    --shadow: rgba(0,0,0,0.15);
+    --shadow-hover: rgba(0,0,0,0.25);
 }
 
 /* Reset */
@@ -44,7 +45,9 @@ nav {
     z-index:1000;
     border-bottom: 3px solid var(--hover-orange);
     border-radius: 0 0 12px 12px;
+    box-shadow: 0 4px 12px var(--shadow);
 }
+
 .nav-left { display:flex; align-items:center; gap:12px; }
 .logo { height:45px; border-radius:8px; border:2px solid #fff; }
 .title { font-size:20px; font-weight:700; color:#fff; letter-spacing:1px; }
@@ -54,7 +57,7 @@ nav {
     color:#fff;
     text-decoration:none;
     font-weight:600;
-    padding:6px 12px;
+    padding:8px 14px;
     border-radius:8px;
     transition:all 0.3s ease;
     display:flex;
@@ -72,10 +75,10 @@ nav {
     width:36px; height:36px; background:#fff; color:var(--main-orange);
     display:flex; align-items:center; justify-content:center; border-radius:50%;
     font-size:16px; font-weight:700; box-shadow:0 4px 12px var(--shadow);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s;
 }
 .user-icon:hover { transform: scale(1.1); }
-.user-info span { font-weight:600; color:#fff; }
+.user-info > span { font-weight:600; color:#fff; }
 
 #userDropdown {
     position:absolute;
@@ -84,7 +87,7 @@ nav {
     border-radius:12px;
     overflow:hidden;
     min-width:180px;
-    box-shadow:0 10px 25px var(--shadow);
+    box-shadow:0 10px 25px var(--shadow-hover);
     opacity:0;
     transform: translateY(-10px);
     transition:all 0.3s ease;
@@ -99,7 +102,6 @@ nav {
     width:16px; height:16px;
     background: var(--card-bg);
     transform: rotate(45deg);
-    z-index:-1;
 }
 #userDropdown.show { opacity:1; transform: translateY(0); pointer-events:auto; }
 #userDropdown a, #userDropdown button {
@@ -107,249 +109,174 @@ nav {
     padding:12px 20px; font-size:14px;
     color: var(--main-orange); text-decoration:none;
     background:none; border:none; cursor:pointer;
-    gap:6px;
+    gap:8px;
     font-weight:600;
+    font-family: 'Montserrat', sans-serif;
 }
-#userDropdown a:hover, #userDropdown button:hover { background: rgba(255,60,0,0.15); color: var(--hover-orange); }
+#userDropdown a:hover, #userDropdown button:hover { 
+    background: rgba(255,60,0,0.12); 
+    color: var(--hover-orange); 
+}
 
 /* Profile Container */
-.container {
-    max-width:750px;
-    background: var(--card-bg);
-    margin:100px auto;
-    padding:40px 50px;
-    border-radius:16px;
-    box-shadow:0 10px 25px var(--shadow);
-    text-align:left;
-}
-.container h2 {
-    text-align:center;
-    color: var(--main-orange);
-    font-size:32px;
-    margin-bottom:30px;
-}
-.profile-table {
-    width:100%;
-    border-collapse:collapse;
-}
-.profile-table td {
-    padding:14px 10px;
-    border-bottom:1px solid rgba(0,0,0,0.05);
-}
-.profile-table td:first-child { width:35%; color:#555; font-weight:600; }
-.profile-table td:last-child { color:var(--text-dark); }
-
-.btn-edit {
-    background: linear-gradient(45deg, var(--main-orange), var(--hover-orange));
-    color:white;
-    border:none;
-    border-radius:10px;
-    padding:14px 25px;
-    font-weight:700;
-    font-size:16px;
-    cursor:pointer;
-    margin-top:30px;
-    display:block;
-    width:100%;
-    transition:0.3s;
-}
-.btn-edit:hover { transform:scale(1.05); box-shadow:0 6px 18px var(--shadow); }
-
-/* Footer */
-footer {
-    background: var(--main-orange);
-    color: #fff;
-    text-align:center;
-    padding:18px 10px;
-    font-size:14px;
-    margin-top:60px;
-    border-radius: 12px 12px 0 0;
+.profile-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px 60px;
 }
 
-/* Responsive */
-@media(max-width:768px){
-    nav { flex-direction:column; gap:10px; }
-    .nav-links { flex-direction:column; gap:8px; display:none; }
-    .nav-links.active { display:flex; }
-    .menu-toggle { display:block; }
-    .container { margin:60px 15px; padding:30px 20px; }
-    .container h2 { font-size:26px; }
-}
-
-/* PROFILE CARD */
-.container {
-    max-width:750px;
-    background: var(--card-bg);
-    margin:90px auto;
-    padding:40px 50px;
-    border-radius:16px;
-    box-shadow:0 10px 25px var(--shadow);
-}
-
-.container h2 {
-    text-align:center;
-    color: var(--main-orange);
-    font-size:32px;
-    margin-bottom:30px;
-}
-
-/* ADMIN-STYLE INFO */
-.profile-info {
-    display:flex;
-    flex-direction:column;
-    gap:14px;
-}
-
-.info-row {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:15px 20px;
-    background:#fff;
-    border-radius:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.08);
-    transition:0.25s;
-}
-
-.info-row:hover {
-    transform: translateY(-2px);
-    box-shadow:0 8px 20px rgba(0,0,0,0.12);
-}
-
-.info-row span {
-    font-weight:600;
-    color:#666;
-}
-
-.info-row strong {
-    font-weight:700;
-    color:#333;
-}
-
-.status {
-    color: var(--main-orange);
-}
-
-/* BUTTON */
-.btn-edit {
-    background: linear-gradient(45deg, var(--main-orange), var(--hover-orange));
-    color:#fff;
-    border:none;
-    border-radius:10px;
-    padding:14px;
-    font-size:16px;
-    font-weight:700;
-    cursor:pointer;
-    margin-top:30px;
-    width:100%;
-}
-
-.btn-edit:hover {
-    transform:scale(1.05);
-    box-shadow:0 6px 18px var(--shadow);
-}
-
-/* FOOTER */
-footer {
-    background: var(--main-orange);
-    color:#fff;
-    text-align:center;
-    padding:18px;
-    border-radius:12px 12px 0 0;
-    margin-top:60px;
-}
-/* PROFILE CARD (ADMIN STYLE) */
 .profile-card {
-    background:white;
-    border-radius:14px;
-    padding:30px;
-    max-width:720px;
-    margin:100px auto;
-    box-shadow:0 8px 25px rgba(0,0,0,0.12);
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 8px 25px var(--shadow);
+    transition: all 0.3s ease;
 }
 
+.profile-card:hover {
+    box-shadow: 0 12px 35px var(--shadow-hover);
+}
+
+/* Profile Header */
 .profile-header {
-    text-align:center;
-    margin-bottom:25px;
+    text-align: center;
+    margin-bottom: 35px;
+    padding-bottom: 25px;
+    border-bottom: 2px solid rgba(0,0,0,0.06);
 }
 
 .avatar {
-    width:90px;
-    height:90px;
-    border-radius:50%;
-    background:#ff5722;
-    color:white;
-    font-size:38px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    margin:0 auto 12px;
-    font-weight:800;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--main-orange), var(--hover-orange));
+    color: white;
+    font-size: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    font-weight: 800;
+    box-shadow: 0 8px 20px var(--shadow);
+    transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+    transform: scale(1.05);
 }
 
 .profile-header h2 {
-    font-size:26px;
-    font-weight:800;
-    margin-bottom:4px;
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    color: var(--text-dark);
 }
 
-.profile-header p {
-    color:#777;
-    font-weight:600;
+.profile-header .role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,60,0,0.1);
+    color: var(--main-orange);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
 }
 
-.profile-info label {
-    display:block;
-    margin-top:12px;
-    font-weight:700;
-    color:#555;
+/* Profile Info Grid */
+.profile-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
 }
 
-.profile-info p {
-    margin:4px 0 10px;
-    font-weight:600;
-    color:#333;
+.info-item {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
 }
 
+.info-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.info-item .label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #666;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-item .label i {
+    color: var(--main-orange);
+    font-size: 16px;
+}
+
+.info-item .value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-dark);
+    word-break: break-word;
+}
+
+/* Profile Actions */
 .profile-actions {
-    display:flex;
-    justify-content:space-between;
-    margin-top:25px;
-    gap:10px;
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.back-btn, .edit-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 15px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Montserrat', sans-serif;
 }
 
 .back-btn {
-    background:#6c757d;
-    color:white;
-    padding:10px 18px;
-    border-radius:8px;
-    text-decoration:none;
-    font-weight:700;
+    background: #6c757d;
+    color: white;
 }
 
 .back-btn:hover {
-    background:#5a6268;
+    background: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(108,117,125,0.3);
 }
 
 .edit-btn {
-    background:#ffc107;
-    color:white;
-    padding:10px 18px;
-    border-radius:8px;
-    border:none;
-    cursor:pointer;
-    font-weight:700;
+    background: linear-gradient(45deg, var(--accent-yellow), #ff9800);
+    color: white;
 }
 
 .edit-btn:hover {
-    background:#e0a800;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(255,193,7,0.4);
 }
 
-/* ===========================
-   EDIT PROFILE MODAL
-=========================== */
+/* Modal */
 .modal {
-    display: none;                 /* IMPORTANT */
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -359,17 +286,20 @@ footer {
     justify-content: center;
     align-items: center;
     z-index: 2000;
+    padding: 20px;
 }
 
 .modal-content {
     background: #fff;
-    padding: 30px;
+    padding: 35px;
     width: 100%;
-    max-width: 500px;
-    border-radius: 14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    max-width: 550px;
+    border-radius: 16px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
     position: relative;
     animation: popIn 0.3s ease;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 @keyframes popIn {
@@ -383,57 +313,222 @@ footer {
     }
 }
 
+.modal-content h3 {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--main-orange);
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .close-modal {
     position: absolute;
     top: 15px;
-    right: 18px;
-    font-size: 26px;
+    right: 20px;
+    font-size: 28px;
     font-weight: bold;
     cursor: pointer;
     color: #999;
+    transition: all 0.2s;
 }
 
 .close-modal:hover {
-    color: #ff3c00;
+    color: var(--main-orange);
+    transform: rotate(90deg);
 }
 
-/* FORM */
+/* Form */
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .form-group label {
     font-weight: 700;
-    display: block;
-    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: #555;
+    font-size: 14px;
+}
+
+.form-group label i {
+    color: var(--main-orange);
 }
 
 .form-group input {
     width: 100%;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 2px solid #ddd;
     font-size: 14px;
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.3s;
 }
 
-/* SAVE BUTTON */
-.create-btn {
-    background: linear-gradient(45deg, #ff3c00, #e03a00);
+.form-group input:focus {
+    outline: none;
+    border-color: var(--main-orange);
+    box-shadow: 0 0 0 3px rgba(255,60,0,0.1);
+}
+
+.form-group small {
+    color: #999;
+    font-size: 12px;
+}
+
+.save-btn {
+    background: linear-gradient(45deg, var(--main-orange), var(--hover-orange));
     color: white;
     border: none;
-    padding: 12px;
+    padding: 14px;
     font-size: 16px;
     font-weight: 700;
     border-radius: 10px;
     cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s;
+    font-family: 'Montserrat', sans-serif;
 }
 
-.create-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+.save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px var(--shadow-hover);
 }
 
+/* Footer */
+footer {
+    background: var(--main-orange);
+    color: #fff;
+    text-align: center;
+    padding: 20px 10px;
+    font-size: 14px;
+    margin-top: 60px;
+    border-radius: 12px 12px 0 0;
+    font-weight: 600;
+}
 
+/* Responsive Design */
+@media(max-width: 768px) {
+    /* Navigation */
+    nav { 
+        flex-direction: column; 
+        gap: 10px; 
+        padding: 12px 15px;
+    }
+    
+    .nav-links { 
+        flex-direction: column; 
+        gap: 8px; 
+        display: none; 
+        width: 100%;
+    }
+    
+    .nav-links.active { 
+        display: flex; 
+    }
+    
+    .nav-links li a {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .menu-toggle { 
+        display: block; 
+    }
+
+    /* Profile */
+    .profile-container {
+        margin: 20px auto;
+        padding: 0 15px 40px;
+    }
+
+    .profile-card {
+        padding: 25px 20px;
+    }
+
+    .avatar {
+        width: 80px;
+        height: 80px;
+        font-size: 36px;
+    }
+
+    .profile-header h2 {
+        font-size: 24px;
+    }
+
+    .profile-info {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .info-item {
+        padding: 16px;
+    }
+
+    .profile-actions {
+        flex-direction: column;
+    }
+
+    .back-btn, .edit-btn {
+        width: 100%;
+    }
+
+    /* Modal */
+    .modal-content {
+        padding: 25px 20px;
+    }
+
+    .modal-content h3 {
+        font-size: 20px;
+    }
+
+    #userDropdown {
+        right: 0;
+        min-width: 100%;
+    }
+}
+
+@media(max-width: 480px) {
+    .title {
+        font-size: 16px;
+    }
+
+    .logo {
+        height: 38px;
+    }
+
+    .profile-header h2 {
+        font-size: 22px;
+    }
+
+    .avatar {
+        width: 70px;
+        height: 70px;
+        font-size: 32px;
+    }
+
+    .info-item .value {
+        font-size: 14px;
+    }
+
+    .back-btn, .edit-btn {
+        font-size: 14px;
+        padding: 12px 16px;
+    }
+}
+
+@media(min-width: 769px) and (max-width: 1024px) {
+    .profile-info {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
 </style>
 </head>
 <body>
@@ -469,43 +564,79 @@ footer {
             </div>
         </li>
         @else
-        <li><a href="{{ route('login') }}" class="btn">Login</a></li>
+        <li><a href="{{ route('login') }}" class="btn"><i class="fa fa-sign-in-alt"></i> Login</a></li>
         @endif
     </ul>
 </nav>
 
-<div class="profile-card">
-    <div class="profile-header">
-        <div class="avatar">
-            {{ strtoupper(substr($customer->name ?? 'C',0,1)) }}
+<!-- PROFILE CONTAINER -->
+<div class="profile-container">
+    <div class="profile-card">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="avatar">
+                {{ strtoupper(substr($customer->name ?? 'C',0,1)) }}
+            </div>
+            <h2>{{ $customer->name }}</h2>
+            <span class="role-badge">
+                <i class="fa fa-user-circle"></i> Customer
+            </span>
         </div>
-        <h2>{{ $customer->name }}</h2>
-        <p>Customer</p>
-    </div>
 
-    <div class="profile-info">
-        <label>Email</label>
-        <p>{{ $customer->email }}</p>
+        <!-- Profile Info -->
+        <div class="profile-info">
+            <div class="info-item">
+                <div class="label">
+                    <i class="fa fa-envelope"></i> Email
+                </div>
+                <div class="value">{{ $customer->email }}</div>
+            </div>
 
-        <label>Phone</label>
-        <p>{{ $customer->phone ?? 'N/A' }}</p>
+            <div class="info-item">
+                <div class="label">
+                    <i class="fa fa-phone"></i> Phone
+                </div>
+                <div class="value">{{ $customer->phone ?? 'Not provided' }}</div>
+            </div>
 
-        <label>Address</label>
-        <p>{{ $customer->address ?? 'N/A' }}</p>
+            <div class="info-item">
+                <div class="label">
+                    <i class="fa fa-map-marker-alt"></i> Address
+                </div>
+                <div class="value">{{ $customer->address ?? 'Not provided' }}</div>
+            </div>
 
-        <label>Status</label>
-        <p>{{ $customer->status ?? 'Active' }}</p>
+            <div class="info-item">
+                <div class="label">
+                    <i class="fa fa-check-circle"></i> Status
+                </div>
+                <div class="value">{{ $customer->status ?? 'Active' }}</div>
+            </div>
 
-        <label>Total Bookings</label>
-        <p>{{ $customer->bookings()->count() }}</p>
+            <div class="info-item">
+                <div class="label">
+                    <i class="fa fa-calendar-check"></i> Total Bookings
+                </div>
+                <div class="value">{{ $customer->bookings()->count() }}</div>
+            </div>
 
-        <label>Feedback Submitted</label>
-        <p>{{ $customer->feedbacks()->count() }}</p>
-    </div>
+            <div class="info-item">
+                <div class="label">
+                    <i class="fa fa-comment-dots"></i> Feedback Submitted
+                </div>
+                <div class="value">{{ $customer->feedbacks()->count() }}</div>
+            </div>
+        </div>
 
-    <div class="profile-actions">
-        <a href="{{ route('customer.dashboard') }}" class="back-btn">← Back to Dashboard</a>
-        <button class="edit-btn" id="openEditModal">✏️ Edit Profile</button>
+        <!-- Profile Actions -->
+        <div class="profile-actions">
+            <a href="{{ route('customer.dashboard') }}" class="back-btn">
+                <i class="fa fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <button class="edit-btn" id="openEditModal">
+                <i class="fa fa-edit"></i> Edit Profile
+            </button>
+        </div>
     </div>
 </div>
 
@@ -513,46 +644,46 @@ footer {
 <div id="editProfileModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" id="closeEditModal">&times;</span>
-        <h3>Edit Profile</h3>
+        <h3><i class="fa fa-user-edit"></i> Edit Profile</h3>
 
         <form method="POST" action="{{ route('customer.profile.update') }}">
             @csrf
             @method('PUT')
 
             <div class="form-group">
-                <label>Name</label>
+                <label><i class="fa fa-user"></i> Name</label>
                 <input type="text" name="name" value="{{ old('name',$customer->name) }}" required>
             </div>
 
             <div class="form-group">
-                <label>Phone</label>
+                <label><i class="fa fa-phone"></i> Phone</label>
                 <input type="text" name="phone" value="{{ old('phone',$customer->phone) }}">
             </div>
 
             <div class="form-group">
-                <label>Address</label>
+                <label><i class="fa fa-map-marker-alt"></i> Address</label>
                 <input type="text" name="address" value="{{ old('address',$customer->address) }}">
             </div>
 
             <div class="form-group">
-                <label>Password <small>(leave blank if no change)</small></label>
-                <input type="password" name="password">
+                <label><i class="fa fa-lock"></i> Password <small>(leave blank if no change)</small></label>
+                <input type="password" name="password" placeholder="Enter new password">
             </div>
 
-            <button type="submit" class="create-btn" style="width:100%;">💾 Save Changes</button>
+            <button type="submit" class="save-btn">
+                <i class="fa fa-save"></i> Save Changes
+            </button>
         </form>
     </div>
 </div>
 
-
+<!-- FOOTER -->
 <footer>
     &copy; {{ date('Y') }} Facilities Booking System. All rights reserved.
 </footer>
 
 <script>
-/* ===========================
-   USER DROPDOWN (NAVBAR)
-=========================== */
+/* User Dropdown (Navbar) */
 function toggleDropdown(event){
     event.stopPropagation();
     const dropdown = document.getElementById('userDropdown');
@@ -568,16 +699,12 @@ window.addEventListener('click', function(e){
     }
 });
 
-/* ===========================
-   MOBILE MENU
-=========================== */
+/* Mobile Menu */
 function toggleMenu(){
     document.querySelector('.nav-links')?.classList.toggle('active');
 }
 
-/* ===========================
-   EDIT PROFILE MODAL
-=========================== */
+/* Edit Profile Modal */
 const editModal = document.getElementById('editProfileModal');
 const openEditBtn = document.getElementById('openEditModal');
 const closeEditBtn = document.getElementById('closeEditModal');
@@ -600,16 +727,13 @@ window.addEventListener('click', function(e){
     }
 });
 
-/* ===========================
-   ACTIVE NAV LINK
-=========================== */
+/* Active Nav Link */
 document.querySelectorAll('.nav-links li a').forEach(link => {
     if(link.href === window.location.href){
         link.classList.add('active');
     }
 });
 </script>
-
 
 </body>
 </html>

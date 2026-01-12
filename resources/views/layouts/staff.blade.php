@@ -11,10 +11,19 @@
 <!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+<!-- Custom Admin CSS -->
+<link rel="stylesheet" href="{{ asset('resources/css/admin.css') }}">
+
 <style>
 :root {
     --orange: #ff3c00;
     --orange-dark: #e03a00;
+    --green-turquoise: #1abc9c;
+    --green-turquoise-dark: #16a085;
+    --blue-steel: #4682b4;
+    --blue-steel-dark: #36648b;
+    --red-mint: #e74c3c;
+    --red-mint-dark: #c0392b;
     --dark: #2c2c2c;
     --gray: #f4f6f9;
     --shadow: 0 6px 20px rgba(0,0,0,0.12);
@@ -120,8 +129,14 @@ nav {
 
 
 /* Buttons */
-.add-btn { background: #ff3c00; color:white; padding:10px 20px; border-radius:8px; font-weight:600; text-decoration:none; transition:var(--transition); }
-.add-btn:hover { background:#ff6e40; }
+.btn-view { background: #3498db; }
+.btn-view:hover { background:#2980b9; }
+.btn-warning { background: var(--blue-steel); color: white; }
+.btn-warning:hover { background: var(--blue-steel-dark); }
+.btn-danger { background: var(--red-mint); color: white; }
+.btn-danger:hover { background: var(--red-mint-dark); }
+.add-btn { background: var(--green-turquoise); color:white; padding:10px 20px; border-radius:8px; font-weight:600; text-decoration:none; transition:var(--transition); }
+.add-btn:hover { background: var(--green-turquoise-dark); }
 
 /* Page Title */
 .page-title { font-size:28px; font-weight:700; color: var(--orange); margin-bottom:20px; letter-spacing:0.5px; }
@@ -141,6 +156,38 @@ nav {
     .sidebar.active { left:0; }
     .main { padding:20px; transition: margin-left 0.3s ease; }
 }
+
+/* PAGINATION STYLES */
+.pagination {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    gap: 5px;
+}
+.pagination li {
+    display: inline-block;
+}
+.pagination li a, .pagination li span {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    color: var(--orange);
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 600;
+}
+.pagination li.active span {
+    background: var(--orange);
+    color: #fff;
+    border-color: var(--orange);
+}
+.pagination li.disabled span {
+    color: #ccc;
+    cursor: not-allowed;
+}
+.pagination li a:hover {
+    background: #ffe5d1;
+}
+
 </style>
 
 @yield('styles')

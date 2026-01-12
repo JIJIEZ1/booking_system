@@ -13,84 +13,146 @@ use Carbon\Carbon;
 
 class AdminReportsController extends Controller
 {
-    // Display Admin Reports based on the selected month range
+
     public function index(Request $request)
-    {
-        // Get start and end months from the request
-        $startMonth = $request->input('start_month', now()->startOfMonth()->format('Y-m'));
-        $endMonth = $request->input('end_month', now()->format('Y-m'));
-
-        // Fetch the report data for the given range
-        $data = $this->getReportData($startMonth, $endMonth);
-
-        // Return the view with the data
-        return view('admin.reports', $data);
-    }
-
-    // Export Admin Reports to PDF
-    public function exportPDF(Request $request)
 {
-    // Get start and end months from the request
-    $startMonth = $request->input('start_month', now()->startOfMonth()->format('Y-m'));
-    $endMonth = $request->input('end_month', now()->format('Y-m'));
-
-    // Fetch the report data for the given range
-    $data = $this->getReportData($startMonth, $endMonth);
-
-    // Add 'month' to the data array (you can choose to pass startMonth or endMonth)
-    $data['month'] = $startMonth;  // or $endMonth based on what you'd like to display
-
-    // Generate the PDF
-    $pdf = Pdf::loadView('admin.reports.export_pdf', $data);
-    $fileName = 'admin_report_' . str_replace('-', '_', $startMonth) . '_to_' . str_replace('-', '_', $endMonth) . '.pdf';
-
-    // Download the PDF
-    return $pdf->download($fileName);
+    $month = $request->input('month', now()->format('Y-m'));
+    $startMonth = $request->input('start_month');
+    $endMonth = $request->input('end_month');
+    
+    // If month range is provided, use it; otherwise use single month
+    if ($startMonth && $endMonth) {
+        $data = $this->getReportDataByRange($startMonth, $endMonth);
+    } else {
+        $data = $this->getReportData($month);
+    }
+    
+    return view('admin.reports', $data);
 }
 
 
-    // Prepare report data (common for web & PDF)
-    private function getReportData($startMonth, $endMonth)
+    // Export Admin Reports to PDF
+    public function exportPDF(Request $request)
     {
-        // Convert the start and end months into year-month format
+        $month = $request->input('month', now()->format('Y-m'));
+        $startMonth = $request->input('start_month');
+        $endMonth = $request->input('end_month');
+        
+        if ($startMonth && $endMonth) {
+            $data = $this->getReportDataByRange($startMonth, $endMonth);
+            $fileName = 'admin_report_' . str_replace('-', '_', $startMonth) . '_to_' . str_replace('-', '_', $endMonth) . '.pdf';
+        } else {
+            $data = $this->getReportData($month);
+            $fileName = 'admin_report_' . str_replace('-', '_', $month) . '.pdf';
+        }
+
+        $pdf = Pdf::loadView('admin.reports.export_pdf', $data);
+        return $pdf->download($fileName);
+    }
+
+    // Prepare report data (common for web & PDF)
+   private function getReportData($month)
+{
+    [$year, $monthNum] = explode('-', $month);
+    $monthNum = (int)$monthNum;
+
+    $totalCustomers = Customer::count();
+    $totalStaff = Staff::count();
+    $totalBookings = Booking::whereYear('booking_date', $year)
+                            ->whereMonth('booking_date', $monthNum)
+                            ->count();
+
+    // Total revenue: Accepted payments where booking is Paid or Completed, in selected month
+    $totalRevenue = Payment::where('status', 'Accepted')
+        ->whereHas('booking', function($q) use ($year, $monthNum) {
+            $q->whereYear('booking_date', $year)
+              ->whereMonth('booking_date', $monthNum)
+              ->whereIn('status', ['Paid', 'Completed']);
+        })->sum('amount');
+
+    $bookingStatus = Booking::whereYear('booking_date', $year)
+                            ->whereMonth('booking_date', $monthNum)
+                            ->select('status', DB::raw('count(*) as total'))
+                            ->groupBy('status')
+                            ->pluck('total','status')
+                            ->toArray();
+
+    $bookingStatus = array_merge(['Paid'=>0,'Completed'=>0,'Cancelled'=>0], $bookingStatus);
+
+    $monthlyRevenue = Payment::where('status', 'Accepted')
+                        ->whereHas('booking', function ($q) {
+                            $q->whereIn('status', ['Paid', 'Completed']);
+                        })
+                        ->whereYear('created_at', $year)
+                        ->selectRaw('MONTH(created_at) as month, SUM(amount) as total')
+                        ->groupBy('month')
+                        ->orderBy('month')
+                        ->get();
+
+    $recentBookings = Booking::with('customer','facility','payment')
+                        ->whereYear('booking_date', $year)
+                        ->whereMonth('booking_date', $monthNum)
+                        ->latest()
+                        ->take(10)
+                        ->get();
+
+    return compact(
+        'totalCustomers',
+        'totalStaff',
+        'totalBookings',
+        'totalRevenue',
+        'bookingStatus',
+        'monthlyRevenue',
+        'recentBookings',
+        'month'
+    );
+}
+
+    // Get report data for a date range
+    private function getReportDataByRange($startMonth, $endMonth)
+    {
         [$startYear, $startMonthNum] = explode('-', $startMonth);
         [$endYear, $endMonthNum] = explode('-', $endMonth);
+        
+        $startDate = Carbon::create($startYear, $startMonthNum, 1)->startOfMonth();
+        $endDate = Carbon::create($endYear, $endMonthNum, 1)->endOfMonth();
 
-        $startMonthNum = (int)$startMonthNum;
-        $endMonthNum = (int)$endMonthNum;
-
-        // Get total counts for the selected range of months
         $totalCustomers = Customer::count();
         $totalStaff = Staff::count();
-        $totalBookings = Booking::whereBetween('booking_date', [$startMonth.'-01', $endMonth.'-31'])->count();
+        
+        $totalBookings = Booking::whereBetween('booking_date', [$startDate, $endDate])
+                                ->count();
 
-        // Total revenue for only paid payments within the selected month range
-        $totalRevenue = Payment::where('status', 'Paid')
-            ->whereHas('booking', function($q) use ($startYear, $startMonthNum, $endYear, $endMonthNum) {
-                $q->whereYear('booking_date', '>=', $startYear)
-                  ->whereMonth('booking_date', '>=', $startMonthNum)
-                  ->whereYear('booking_date', '<=', $endYear)
-                  ->whereMonth('booking_date', '<=', $endMonthNum);
+        $totalRevenue = Payment::where('status', 'Accepted')
+            ->whereHas('booking', function($q) use ($startDate, $endDate) {
+                $q->whereBetween('booking_date', [$startDate, $endDate])
+                  ->whereIn('status', ['Paid', 'Completed']);
             })->sum('amount');
 
-        // Booking statuses within the range of months
-        $bookingStatus = Booking::whereBetween('booking_date', [$startMonth.'-01', $endMonth.'-31'])
+        $bookingStatus = Booking::whereBetween('booking_date', [$startDate, $endDate])
                                 ->select('status', DB::raw('count(*) as total'))
                                 ->groupBy('status')
-                                ->pluck('total', 'status')
+                                ->pluck('total','status')
                                 ->toArray();
 
-        // Make sure to include all statuses
-        $bookingStatus = array_merge(['Paid' => 0, 'Completed' => 0, 'Cancelled' => 0], $bookingStatus);
+        $bookingStatus = array_merge(['Paid'=>0,'Completed'=>0,'Cancelled'=>0], $bookingStatus);
 
-        // Monthly revenue for payments that are completed within the selected range of months
-        $monthlyRevenue = Payment::whereHas('booking', function ($q) {
-                                $q->where('status', 'Completed');
+        $monthlyRevenue = Payment::where('status', 'Accepted')
+                            ->whereHas('booking', function ($q) use ($startDate, $endDate) {
+                                $q->whereIn('status', ['Paid', 'Completed'])
+                                  ->whereBetween('booking_date', [$startDate, $endDate]);
                             })
-                            ->whereBetween('created_at', [Carbon::parse($startMonth)->startOfMonth(), Carbon::parse($endMonth)->endOfMonth()])
-                            ->selectRaw('MONTH(created_at) as month, SUM(amount) as total')
-                            ->groupBy('month')
+                            ->whereBetween('created_at', [$startDate, $endDate])
+                            ->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, SUM(amount) as total')
+                            ->groupBy('year', 'month')
+                            ->orderBy('year')
                             ->orderBy('month')
+                            ->get();
+
+        $recentBookings = Booking::with('customer','facility','payment')
+                            ->whereBetween('booking_date', [$startDate, $endDate])
+                            ->latest()
+                            ->take(10)
                             ->get();
 
         return compact(
@@ -100,8 +162,10 @@ class AdminReportsController extends Controller
             'totalRevenue',
             'bookingStatus',
             'monthlyRevenue',
-            'startMonth', // Pass the start and end month to the view and PDF
+            'recentBookings',
+            'startMonth',
             'endMonth'
         );
     }
+
 }

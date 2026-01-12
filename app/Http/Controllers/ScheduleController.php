@@ -3,201 +3,268 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Schedule;
-use App\Models\Facility;
 use App\Models\Booking;
+use App\Models\Customer;
+use App\Models\Facility;
+use App\Models\Schedule;
+use Carbon\Carbon;
 
-class ScheduleController extends Controller
+class StaffBookingController extends Controller
 {
     // ===============================
-    // SHOW CALENDAR WITH SCHEDULES & BOOKINGS
+    // List bookings
     // ===============================
-    public function index()
-{
-    $schedules  = Schedule::all();
-    $bookings   = Booking::all();
-    $facilities = Facility::all();
+    public function index(Request $request)
+    {
+        $perPage = $request->get('per_page', 10);
+        $query = Booking::with('customer')->orderBy('id', 'desc');
 
-    // Count overlapping bookings
-    $overlappingBookings = [];
-    foreach ($schedules as $s) {
-        $overlappingBookings[$s->schedule_id] = Booking::where('facility', $s->facility)
-            ->where('booking_date', $s->date)
-            ->whereIn('status', ['Success','Paid'])
-            ->count();
+        if ($perPage === 'All') {
+            $bookings = $query->get();
+        } else {
+            $bookings = $query->paginate($perPage)->withQueryString();
+        }
+
+        $customers = Customer::all();
+        $facilities = Facility::all();
+
+        return view('staff.bookings.index', compact('bookings', 'customers', 'facilities', 'perPage'));
     }
 
-    // Schedule events (BLOCKED)
-    $scheduleEvents = $schedules->map(function ($s) {
-        return [
-            'id'    => 'schedule_'.$s->schedule_id,
-            'title' => $s->facility . ' (Blocked)',
-            'start' => $s->date . 'T' . $s->start_time,
-            'end'   => $s->date . 'T' . $s->end_time,
-            'color' => '#e74c3c', // red
-            'extendedProps' => [
-                'type' => 'schedule',
-                'status' => 'Blocked'
-            ]
-        ];
-    });
-
-    // Booking events
-    $bookingEvents = $bookings->map(function ($b) {
-        return [
-            'id'    => 'booking_'.$b->booking_id,
-            'title' => $b->customer->name ?? 'Booking',
-            'start' => $b->booking_date . 'T' . $b->booking_time,
-            'end'   => $b->booking_date . 'T' .
-                       date('H:i', strtotime($b->booking_time . '+' . $b->duration . ' minutes')),
-            'color' => '#007bff', // blue
-            'extendedProps' => [
-                'type' => 'booking',
-                'status' => $b->status
-            ]
-        ];
-    });
-
-    // ✅ SAFE MERGE (NO ERROR)
-    $events = collect($scheduleEvents)
-                ->merge(collect($bookingEvents))
-                ->values();
-
-    return view('admin.schedule.index', compact(
-        'facilities',
-        'events',
-        'schedules',
-        'bookings',
-        'overlappingBookings'
-    ));
-}
-
-
     // ===============================
-    // STORE NEW SCHEDULE
+    // Store booking
     // ===============================
     public function store(Request $request)
     {
+        // ✅ Validate input
         $request->validate([
-            'facility'   => 'required|string',
-            'date'       => 'required|date',
-            'start_time' => 'required',
-            'end_time'   => 'required|after:start_time',
-            'status'     => 'required|in:Blocked',
-        ]);
+    'customer_id' => 'required|exists:customer,id', // must match your table name
+    'facility'    => 'required|string',
+    'booking_date'=> 'required|date',
+    'booking_start_time' => 'required',
+    'booking_end_time'   => 'required|after:booking_start_time',
+    'duration'    => 'required|integer|min:1',
+    'amount'      => 'required|numeric|min:0',
+    'status'      => 'required|in:Success,Completed,Cancelled',
+]);
 
-        // Check overlapping schedules
-        $overlapSchedule = Schedule::where('facility', $request->facility)
-            ->where('date', $request->date)
-            ->where(function ($q) use ($request) {
-                $q->where('start_time', '<', $request->end_time)
-                  ->where('end_time', '>', $request->start_time);
-            })
-            ->exists();
+        try {
+            Booking::create([
+                'customer_id' => $request->customer_id,
+                'facility'    => $request->facility,
+                'booking_date'=> $request->booking_date,
+                'start_time'  => $request->booking_start_time,
+                'end_time'    => $request->booking_end_time,
+                'expires_at'  => Carbon::parse($request->booking_date . ' ' . $request->booking_start_time)->addHours(1),
+                'duration'    => $request->duration,
+                'amount'      => $request->amount,
+                'status'      => $request->status,
+            ]);
 
-        if ($overlapSchedule) {
-            return back()->withErrors(['time' => 'This time slot is already blocked.'])->withInput();
+            return redirect()->route('staff.bookings.index')
+                ->with('success', 'Booking added successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to add booking: ' . $e->getMessage());
         }
-
-        // Check overlapping bookings (active bookings only)
-        $overlapBooking = Booking::where('facility', $request->facility)
-            ->where('booking_date', $request->date)
-            ->where(function($q) use ($request) {
-                $q->where('booking_time', '<', $request->end_time)
-                  ->whereRaw("ADDTIME(booking_time, SEC_TO_TIME(duration*3600)) > ?", [$request->start_time]);
-            })
-            ->whereIn('status', ['Success','Paid'])
-            ->exists();
-
-        if ($overlapBooking) {
-            return back()->withErrors(['time' => 'Cannot block this slot, customer bookings exist.'])->withInput();
-        }
-
-        // Generate schedule_id
-        $last = Schedule::orderByRaw("CAST(SUBSTRING(schedule_id,2) AS UNSIGNED) DESC")->first();
-        $nextNumber = $last ? intval(substr($last->schedule_id, 1)) + 1 : 1;
-        $scheduleId = 'S' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
-
-        Schedule::create([
-            'schedule_id' => $scheduleId,
-            'facility'    => $request->facility,
-            'date'        => $request->date,
-            'start_time'  => $request->start_time,
-            'end_time'    => $request->end_time,
-            'status'      => 'Blocked',
-        ]);
-
-        return redirect()->route('admin.schedule.index')
-            ->with('success', 'Schedule created successfully.');
     }
 
+
+
     // ===============================
-    // UPDATE SCHEDULE
+    // Update booking
     // ===============================
     public function update(Request $request, $id)
+{
+    // Find the booking
+    $booking = Booking::findOrFail($id);
+
+    // Validate input (same as create)
+    $request->validate([
+        'customer_id' => 'required|exists:customer,id', // must match your table
+        'facility'    => 'required|string',
+        'booking_date'=> 'required|date',
+        'booking_start_time' => 'required',
+        'booking_end_time'   => 'required|after:booking_start_time',
+        'duration'    => 'required|integer|min:1',
+        'amount'      => 'required|numeric|min:0',
+        'status'      => 'required|in:Success,Completed,Cancelled',
+    ]);
+
+    try {
+        // Update the booking
+        $booking->update([
+            'customer_id' => $request->customer_id,
+            'facility'    => $request->facility,
+            'booking_date'=> $request->booking_date,
+            'start_time'  => $request->booking_start_time,
+            'end_time'    => $request->booking_end_time,
+            'expires_at'  => Carbon::parse($request->booking_date . ' ' . $request->booking_start_time)->addHours(1),
+            'duration'    => $request->duration,
+            'amount'      => $request->amount,
+            'status'      => $request->status,
+        ]);
+
+        return redirect()->route('staff.bookings.index')
+            ->with('success', 'Booking updated successfully!');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Failed to update booking: ' . $e->getMessage());
+    }
+}
+
+    // ===============================
+    // Get available slots
+    // ===============================
+    public function getAvailableSlots(Request $request)
     {
-        $schedule = Schedule::where('schedule_id', $id)->firstOrFail();
+        $facility = $request->facility;
+        $date     = $request->date; // YYYY-MM-DD
+        $timezone = 'Asia/Kuala_Lumpur';
 
-        $request->validate([
-            'facility'   => 'required|string',
-            'date'       => 'required|date',
-            'start_time' => 'required',
-            'end_time'   => 'required|after:start_time',
-            'status'     => 'required|in:Blocked',
-        ]);
+        $now = Carbon::now($timezone);
 
-        // Check overlapping schedules (excluding this schedule)
-        $overlapSchedule = Schedule::where('facility', $request->facility)
-            ->where('date', $request->date)
-            ->where('schedule_id', '!=', $schedule->schedule_id)
-            ->where(function ($q) use ($request) {
-                $q->where('start_time', '<', $request->end_time)
-                  ->where('end_time', '>', $request->start_time);
+        $editingId = $request->editing_id ?? null; // Booking being edited
+
+        // // CUSTOMER BOOKINGS (PAID / SUCCESS / COMPLETED)
+        // $bookings = Booking::where('facility', $facility)
+        //     ->whereIn('status', ['Paid', 'Success', 'Completed'])
+        //     ->whereDate('start_time', $date)
+        //     ->when($editingId, function($q) use ($editingId) {
+        //         return $q->where('id', '<>', $editingId); // exclude current booking
+        //     })
+        //     ->get();
+
+        // // UNPAID BOOKINGS (LOCKED SLOTS)
+        // $unpaidBookings = Booking::where('facility', $facility)
+        //     ->where('status', 'Unpaid')
+        //     ->whereDate('start_time', $date)
+        //     ->where('created_at', '>=', $now->copy()->subMinutes(10)) // still within 10-min lock
+        //     ->when($editingId, function($q) use ($editingId) {
+        //         return $q->where('id', '<>', $editingId); // exclude current booking
+        //     })
+        //     ->get();
+        
+        // ✅ PAID/SUCCESS BOOKINGS - always show as booked
+        $paidBookings = Booking::where('facility', $facility)
+            ->whereIn('status', ['Paid', 'Success'])
+            ->whereDate('booking_date', $date)
+            ->when($editingId, function($q) use ($editingId) {
+                return $q->where('id', '<>', $editingId);
             })
-            ->exists();
+            ->get();
+    
+        // ✅ UNPAID BOOKINGS WITHIN 10-MIN WINDOW (LOCKED)
+        $lockedBookings = Booking::where('facility', $facility)
+            ->where('status', 'Unpaid')
+            ->whereDate('booking_date', $date)
+            ->where('created_at', '>=', $now->copy()->subMinutes(10))
+            ->when($editingId, function($q) use ($editingId) {
+                return $q->where('id', '<>', $editingId);
+            })
+            ->get();
+    
+        // ✅ UNPAID BOOKINGS OUTSIDE 10-MIN WINDOW (EXPIRED BUT NOT CANCELLED)
+        $expiredUnpaidBookings = Booking::where('facility', $facility)
+            ->where('status', 'Unpaid')
+            ->whereDate('booking_date', $date)
+            ->where('created_at', '<', $now->copy()->subMinutes(10))
+            ->when($editingId, function($q) use ($editingId) {
+                return $q->where('id', '<>', $editingId);
+            })
+            ->get();
 
-        if ($overlapSchedule) {
-            return back()->withErrors(['time' => 'This time slot is already blocked.'])->withInput();
+        // BLOCKED SCHEDULES (ADMIN + STAFF)
+        $schedules = Schedule::where('facility_type', $facility)
+            ->where('status', 'Blocked')
+            ->whereDate('date', $date)
+            ->get();
+
+        $slots = [];
+
+        for ($hour = 0; $hour < 24; $hour++) {
+            $slotStart = Carbon::parse($date.' '.sprintf('%02d:00', $hour), $timezone);
+            $slotEnd   = $slotStart->copy()->addHour();
+
+            $type = 'free';
+
+            // Past slots
+            if ($slotStart->isPast()) $type = 'past';
+
+            // // Check customer bookings
+            // foreach ($bookings as $b) {
+            //     $bookingStart = Carbon::parse($b->start_time, $timezone);
+            //     $bookingEnd   = Carbon::parse($b->end_time, $timezone);
+            //     if ($slotStart < $bookingEnd && $slotEnd > $bookingStart) { $type = 'booked'; break; }
+            // }
+
+            // // Check unpaid bookings
+            // if ($type === 'free') {
+            //     foreach ($unpaidBookings as $b) {
+            //         $bookingStart = Carbon::parse($b->start_time, $timezone);
+            //         $bookingEnd   = Carbon::parse($b->end_time, $timezone);
+            //         if ($slotStart < $bookingEnd && $slotEnd > $bookingStart) { $type = 'locked'; break; }
+            //     }
+            // }
+            
+            // ✅ Check paid/success bookings
+            if ($type === 'free') {
+                foreach ($paidBookings as $b) {
+                    $bookingStart = Carbon::parse($b->booking_date . ' ' . $b->start_time, $timezone);
+                    $bookingEnd   = Carbon::parse($b->booking_date . ' ' . $b->end_time, $timezone);
+                    if ($slotStart < $bookingEnd && $slotEnd > $bookingStart) {
+                        $type = 'booked';
+                        break;
+                    }
+                }
+            }
+    
+            // ✅ Check expired unpaid bookings (show as booked)
+            if ($type === 'free') {
+                foreach ($expiredUnpaidBookings as $b) {
+                    $bookingStart = Carbon::parse($b->booking_date . ' ' . $b->start_time, $timezone);
+                    $bookingEnd   = Carbon::parse($b->booking_date . ' ' . $b->end_time, $timezone);
+                    if ($slotStart < $bookingEnd && $slotEnd > $bookingStart) {
+                        $type = 'booked';
+                        break;
+                    }
+                }
+            }
+    
+            // ✅ Check locked unpaid bookings (show as locked - yellow)
+            if ($type === 'free') {
+                foreach ($lockedBookings as $b) {
+                    $bookingStart = Carbon::parse($b->booking_date . ' ' . $b->start_time, $timezone);
+                    $bookingEnd   = Carbon::parse($b->booking_date . ' ' . $b->end_time, $timezone);
+                    if ($slotStart < $bookingEnd && $slotEnd > $bookingStart) {
+                        $type = 'locked';
+                        break;
+                    }
+                }
+            }
+
+            // Check blocked schedules
+            if ($type === 'free') {
+                foreach ($schedules as $s) {
+                    $blockStart = Carbon::parse($s->date . ' ' . $s->start_time, $timezone);
+                    $blockEnd   = Carbon::parse($s->date . ' ' . $s->end_time, $timezone);
+                    if ($slotStart < $blockEnd && $slotEnd > $blockStart) { $type = 'blocked'; break; }
+                }
+            }
+
+            $slots[] = [
+                'time' => $slotStart->format('H:i'),
+                'type' => $type
+            ];
         }
 
-        // Check overlapping bookings (active bookings only)
-        $overlapBooking = Booking::where('facility', $request->facility)
-            ->where('booking_date', $request->date)
-            ->where(function($q) use ($request) {
-                $q->where('booking_time', '<', $request->end_time)
-                  ->whereRaw("ADDTIME(booking_time, SEC_TO_TIME(duration*3600)) > ?", [$request->start_time]);
-            })
-            ->whereIn('status', ['Success','Paid'])
-            ->exists();
-
-        if ($overlapBooking) {
-            return back()->withErrors(['time' => 'Cannot block this slot, customer bookings exist.'])->withInput();
-        }
-
-        $schedule->update([
-            'facility'   => $request->facility,
-            'date'       => $request->date,
-            'start_time' => $request->start_time,
-            'end_time'   => $request->end_time,
-            'status'     => 'Blocked',
-        ]);
-
-        return redirect()->route('admin.schedule.index')
-            ->with('success', 'Schedule updated successfully.');
+        return response()->json($slots);
     }
 
     // ===============================
-    // DELETE SCHEDULE
+    // Delete booking
     // ===============================
     public function destroy($id)
     {
-        $schedule = Schedule::where('schedule_id', $id)->first();
-
-        if ($schedule) {
-            $schedule->delete();
-        }
-
-        return redirect()->route('admin.schedule.index')
-            ->with('success', 'Schedule deleted successfully.');
+        Booking::destroy($id);
+        return back()->with('success', 'Booking deleted successfully.');
     }
 }

@@ -159,64 +159,105 @@ footer { background: var(--main-orange); color: #fff; text-align:center; padding
     .feedback-container { margin:20px 15px; padding:20px; }
 }
 
-@media (max-width: 600px) {
-    .feedback-container {
-        padding: 16px;
-    }
+/* Feedback Table */
+.feedback-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.feedback-table th, .feedback-table td {
+    padding:14px;
+    border:1px solid #eee;
+    text-align:left;
+}
+.feedback-table th {
+    background-color: var(--main-orange);
+    color: #fff;
+    font-weight: 600;
+}
+.feedback-table tbody tr:hover { 
+    background-color: #ffe0d6; 
+    transition: background-color 0.2s ease;
+}
 
+/* Table Wrapper for Horizontal Scroll */
+.table-wrapper {
+    overflow-x: auto;
+    margin: 0 -15px;
+    padding: 0 15px;
+}
+
+/* Mobile Responsive Table */
+@media(max-width: 768px) {
     .feedback-table {
         border: 0;
     }
-
+    
     .feedback-table thead {
-        display: none; /* hide table header */
+        display: none; /* Hide table header on mobile */
     }
-
-    .feedback-table,
-    .feedback-table tbody,
-    .feedback-table tr,
+    
+    .feedback-table tbody tr {
+        display: block;
+        margin-bottom: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        overflow: hidden;
+        border: 2px solid #ffe0d6;
+    }
+    
+    .feedback-table tbody tr:hover {
+        background: white;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+    
     .feedback-table td {
         display: block;
-        width: 100%;
-    }
-
-    .feedback-table tr {
-        background: #fff;
-        margin-bottom: 14px;
-        border-radius: 14px;
-        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-        overflow: hidden;
-        border: 1px solid #f1f1f1;
-    }
-
-    .feedback-table td {
         text-align: left;
-        padding: 12px 14px;
-        border: 0;
-        border-bottom: 1px solid #f2f2f2;
-        font-size: 14px;
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        word-break: break-word;
+        border: none;
+        padding: 12px 15px;
+        border-bottom: 1px solid #f0f0f0;
+        position: relative;
+        padding-left: 45%;
     }
-
+    
     .feedback-table td:last-child {
-        border-bottom: 0;
+        border-bottom: none;
     }
-
+    
+    /* Add labels before each data cell */
     .feedback-table td::before {
         content: attr(data-label);
+        position: absolute;
+        left: 15px;
         font-weight: 700;
-        color: #ff3c00;
-        min-width: 120px;
-        flex-shrink: 0;
+        color: var(--main-orange);
+        white-space: nowrap;
     }
+    
+    /* Special styling for specific columns */
+    .feedback-table td[data-label="Rating"] {
+        font-size: 18px;
+        color: var(--accent-yellow);
+    }
+    
+    .feedback-table td[data-label="Comment"],
+    .feedback-table td[data-label="Reply"] {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        word-wrap: break-word;
+        white-space: normal;
+    }
+}
 
-    /* Nav dropdown nicer on small screens */
-    #userDropdown {
-        right: 0;
-        min-width: 100%;
+@media(max-width: 480px) {
+    .feedback-table td {
+        padding-left: 50%;
+        font-size: 14px;
+    }
+    
+    .feedback-table td::before {
+        font-size: 13px;
     }
 }
 </style>
@@ -270,7 +311,7 @@ footer { background: var(--main-orange); color: #fff; text-align:center; padding
     @if($feedbacks->isEmpty())
         <p style="text-align:center; font-size:16px;">You haven't submitted any feedback yet.</p>
     @else
-        <div class="table-responsive">
+        <div class="table-wrapper">
             <table class="feedback-table">
                 <thead>
                     <tr>
@@ -284,11 +325,11 @@ footer { background: var(--main-orange); color: #fff; text-align:center; padding
                 <tbody>
                     @foreach($feedbacks as $feedback)
                     <tr>
-                        <td data-label="Booking ID">{{ $feedback->booking_id }}</td>
+                        <td data-label="Booking ID">{{ $feedback->booking_id ?? 'N/A' }}</td>
                         <td data-label="Rating">{{ $feedback->rating }} ★</td>
-                        <td data-label="Comment">{{ $feedback->comment }}</td>
-                        <td data-label="Reply">{{ $feedback->reply }}</td>
-                        <td data-label="Submitted At">{{ $feedback->created_at->timezone('Asia/Kuala_Lumpur')->format('d M Y, h:i A') }}</td>
+                        <td data-label="Comment">{{ $feedback->comment ?? '-' }}</td>
+                        <td data-label="Reply">{{ $feedback->reply ?? '-' }}</td>
+                        <td data-label="Submitted At">{{ $feedback->created_at ? $feedback->created_at->timezone('Asia/Kuala_Lumpur')->format('d M Y, h:i A') : 'N/A' }}</td>
                     </tr>
                     @endforeach
                 </tbody>

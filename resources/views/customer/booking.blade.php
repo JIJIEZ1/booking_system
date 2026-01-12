@@ -133,20 +133,14 @@ nav {
     text-align:center;
     padding:20px;
     box-shadow:0 8px 20px var(--shadow);
-    transition: transform 0.3s, box-shadow 0.3s;
     cursor:pointer;
     position: relative;
     display:flex; flex-direction:column; align-items:center;
 }
-.facility-card:hover { 
-    transform: translateY(-10px); 
-    box-shadow:0 16px 40px var(--shadow-hover); 
-}
 .facility-card img {
     width:100%; height:180px; object-fit:cover; border-radius:15px; 
-    margin-bottom:15px; transition: transform 0.3s;
+    margin-bottom:15px;
 }
-.facility-card:hover img { transform: scale(1.05); }
 .facility-card h3 { font-size:22px; margin-bottom:10px; color: var(--main-orange); font-weight:700; }
 .facility-desc { font-size:15px; color:#555; margin-bottom:15px; line-height:1.4; }
 
@@ -230,7 +224,13 @@ footer { background: var(--main-orange); color:#fff; text-align:center; padding:
             <div class="price-badge">RM {{ $facility->price }}/hr</div>
             <img src="{{ asset('facility_images/'.$facility->image) }}" alt="{{ $facility->name }}">
             <h3>{{ $facility->name }}</h3>
-            <p class="facility-desc">{{ $facility->description }}</p>
+            <p class="facility-desc">
+                @php
+                    $words = explode(' ', $facility->description);
+                    $snippet = implode(' ', array_slice($words, 0, 6));
+                    echo $snippet . (count($words) > 6 ? '...' : '');
+                @endphp
+            </p>
             @if(!$customer)
             <a href="{{ route('login') }}" class="book-now-btn">Login to Book</a>
             @endif

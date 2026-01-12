@@ -109,6 +109,12 @@ Route::prefix('admin')->middleware('auth:admin')->name('admin.')->group(function
     Route::put('/facilities/update/{id}', [AdminFacilityController::class, 'update'])->name('facilities.update');
     Route::delete('/facilities/delete/{id}', [AdminFacilityController::class, 'destroy'])->name('facilities.delete');
 
+    // Facility Pricing Schedules
+    Route::get('/facilities/{facilityId}/pricing', [App\Http\Controllers\AdminFacilityPricingController::class, 'index'])->name('facility.pricing');
+    Route::post('/facilities/{facilityId}/pricing', [App\Http\Controllers\AdminFacilityPricingController::class, 'store'])->name('facility.pricing.store');
+    Route::put('/facilities/{facilityId}/pricing/{id}', [App\Http\Controllers\AdminFacilityPricingController::class, 'update'])->name('facility.pricing.update');
+    Route::delete('/facilities/{facilityId}/pricing/{id}', [App\Http\Controllers\AdminFacilityPricingController::class, 'destroy'])->name('facility.pricing.delete');
+
     // Feedback
     Route::get('feedback', [AdminFeedbackController::class, 'index'])->name('feedback.index');
     Route::get('feedback/{feedback_id}/show', [AdminFeedbackController::class, 'show'])->name('feedback.show');

@@ -14,101 +14,230 @@
     <p class="alert-error">{{ session('error') }}</p>
 @endif
 
-<!-- Add User Button -->
+<!-- Live Search -->
+<div style="margin-bottom:15px;">
+    <input type="text" id="userSearch" placeholder="🔍 Search users..." class="admin-input" style="max-width:350px;">
+</div>
+
+<!-- Action Bar -->
 <div class="action-bar">
-    <button class="add-btn" id="openModal" title="Add User">➕ Add User</button>
+    <form method="GET" action="{{ url()->current() }}" class="per-page-form">
+        <label>Rows:</label>
+        <select name="per_page" onchange="this.form.submit()" class="admin-input">
+            <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+            <option value="20" {{ $perPage == 20 ? 'selected' : '' }}>20</option>
+            <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+            <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
+            <option value="All" {{ $perPage == 'All' ? 'selected' : '' }}>All</option>
+        </select>
+        @foreach(request()->except('per_page', 'customers_page', 'staff_page') as $key => $value)
+            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+        @endforeach
+    </form>
+    <button class="add-btn" id="openModal" title="Add User">
+        <i class="fas fa-plus"></i> 
+        <span class="btn-text">Add User</span>
+    </button>
 </div>
 
 <!-- Tabs -->
-<div style="display:flex; justify-content:center; margin-bottom:20px;">
-    <button class="tab-link active" onclick="showTab(event, 'customers')">Customers</button>
-    <button class="tab-link" onclick="showTab(event, 'staff')">Staff</button>
+<div class="tabs-container">
+    <button class="tab-link active" onclick="showTab(event, 'customers')">
+        <i class="fas fa-users"></i> Customers
+    </button>
+    <button class="tab-link" onclick="showTab(event, 'staff')">
+        <i class="fas fa-user-tie"></i> Staff
+    </button>
 </div>
 
 <!-- Customers Tab -->
 <div id="customers" class="tab-content active">
     <div class="table-container">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Address</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($customers as $customer)
+        <!-- Desktop Table View -->
+        <div class="desktop-table">
+            <table class="admin-table">
+                <thead>
                     <tr>
-                        <td>{{ $customer->id }}</td>
-                        <td>{{ $customer->name }}</td>
-                        <td>{{ $customer->email }}</td>
-                        <td>{{ $customer->phone ?? 'N/A' }}</td>
-                        <td>{{ $customer->address ?? 'N/A' }}</td>
-                        <td class="admin-actions">
-                            <button class="btn-warning" onclick="openEditModal({ 
-                                role: 'customer', 
-                                email: '{{ $customer->email }}',
-                                name: '{{ $customer->name }}',
-                                phone: '{{ $customer->phone ?? '' }}',
-                                address: '{{ $customer->address ?? '' }}'
-                            })">✏️</button>
-                            <button type="button" class="btn-danger" 
-                                onclick="openDeleteModal('{{ route('admin.users.destroy', ['customer', $customer->email]) }}', '{{ $customer->name }}')">🗑️</button>
-                        </td>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Address</th>
+                        <th>Actions</th>
                     </tr>
-                @empty
-                    <tr><td colspan="6" class="empty">No customers found.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @forelse($customers as $customer)
+                        <tr>
+                            <td>{{ $customer->id }}</td>
+                            <td>{{ $customer->name }}</td>
+                            <td>{{ $customer->email }}</td>
+                            <td>{{ $customer->phone ?? 'N/A' }}</td>
+                            <td>{{ $customer->address ?? 'N/A' }}</td>
+                            <td class="admin-actions">
+                                <button class="btn-warning" onclick="openEditModal({ 
+                                    role: 'customer', 
+                                    email: '{{ $customer->email }}',
+                                    name: '{{ $customer->name }}',
+                                    phone: '{{ $customer->phone ?? '' }}',
+                                    address: '{{ $customer->address ?? '' }}'
+                                })" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn-danger" 
+                                    onclick="openDeleteModal('{{ route('admin.users.destroy', ['customer', $customer->email]) }}', '{{ $customer->name }}')" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" class="empty">No customers found.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="mobile-cards">
+            @forelse($customers as $customer)
+                <div class="user-card">
+                    <div class="card-header">
+                        <div class="user-avatar">{{ strtoupper(substr($customer->name, 0, 1)) }}</div>
+                        <div class="card-user-info">
+                            <h3>{{ $customer->name }}</h3>
+                            <span class="user-id">ID: {{ $customer->id }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-row">
+                            <i class="fas fa-envelope"></i>
+                            <span>{{ $customer->email }}</span>
+                        </div>
+                        <div class="info-row">
+                            <i class="fas fa-phone"></i>
+                            <span>{{ $customer->phone ?? 'N/A' }}</span>
+                        </div>
+                        <div class="info-row">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>{{ $customer->address ?? 'N/A' }}</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-warning" onclick="openEditModal({ 
+                            role: 'customer', 
+                            email: '{{ $customer->email }}',
+                            name: '{{ $customer->name }}',
+                            phone: '{{ $customer->phone ?? '' }}',
+                            address: '{{ $customer->address ?? '' }}'
+                        })">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn-danger" 
+                            onclick="openDeleteModal('{{ route('admin.users.destroy', ['customer', $customer->email]) }}', '{{ $customer->name }}')">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            @empty
+                <p class="empty">No customers found.</p>
+            @endforelse
+        </div>
     </div>
 </div>
 
 <!-- Staff Tab -->
 <div id="staff" class="tab-content">
     <div class="table-container">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Role</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($staff as $s)
+        <!-- Desktop Table View -->
+        <div class="desktop-table">
+            <table class="admin-table">
+                <thead>
                     <tr>
-                        <td>{{ $s->staff_id }}</td>
-                        <td>{{ $s->name }}</td>
-                        <td>{{ $s->email }}</td>
-                        <td>{{ $s->phone ?? 'N/A' }}</td>
-                        <td>
-                            <span class="status available">{{ $s->role ?? 'N/A' }}</span>
-                        </td>
-                        <td class="admin-actions">
-                            <button class="btn-warning" onclick="openEditModal({ 
-                                role: 'staff', 
-                                email: '{{ $s->email }}',
-                                name: '{{ $s->name }}',
-                                phone: '{{ $s->phone ?? '' }}',
-                                staff_id: '{{ $s->staff_id }}',
-                                roleName: '{{ $s->role }}'
-                            })">✏️</button>
-                            <button type="button" class="btn-danger" 
-                                onclick="openDeleteModal('{{ route('admin.users.destroy', ['staff', $s->email]) }}', '{{ $s->name }}')">🗑️</button>
-                        </td>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Actions</th>
                     </tr>
-                @empty
-                    <tr><td colspan="6" class="empty">No staff found.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @forelse($staff as $s)
+                        <tr>
+                            <td>{{ $s->staff_id }}</td>
+                            <td>{{ $s->name }}</td>
+                            <td>{{ $s->email }}</td>
+                            <td>{{ $s->phone ?? 'N/A' }}</td>
+                            <td>
+                                <span class="status available">{{ $s->role ?? 'N/A' }}</span>
+                            </td>
+                            <td class="admin-actions">
+                                <button class="btn-warning" onclick="openEditModal({ 
+                                    role: 'staff', 
+                                    email: '{{ $s->email }}',
+                                    name: '{{ $s->name }}',
+                                    phone: '{{ $s->phone ?? '' }}',
+                                    staff_id: '{{ $s->staff_id }}',
+                                    roleName: '{{ $s->role }}'
+                                })" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn-danger" 
+                                    onclick="openDeleteModal('{{ route('admin.users.destroy', ['staff', $s->email]) }}', '{{ $s->name }}')" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" class="empty">No staff found.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="mobile-cards">
+            @forelse($staff as $s)
+                <div class="user-card">
+                    <div class="card-header">
+                        <div class="user-avatar staff-avatar">{{ strtoupper(substr($s->name, 0, 1)) }}</div>
+                        <div class="card-user-info">
+                            <h3>{{ $s->name }}</h3>
+                            <span class="user-id">ID: {{ $s->staff_id }}</span>
+                        </div>
+                        <span class="status available">{{ $s->role ?? 'N/A' }}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-row">
+                            <i class="fas fa-envelope"></i>
+                            <span>{{ $s->email }}</span>
+                        </div>
+                        <div class="info-row">
+                            <i class="fas fa-phone"></i>
+                            <span>{{ $s->phone ?? 'N/A' }}</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-warning" onclick="openEditModal({ 
+                            role: 'staff', 
+                            email: '{{ $s->email }}',
+                            name: '{{ $s->name }}',
+                            phone: '{{ $s->phone ?? '' }}',
+                            staff_id: '{{ $s->staff_id }}',
+                            roleName: '{{ $s->role }}'
+                        })">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn-danger" 
+                            onclick="openDeleteModal('{{ route('admin.users.destroy', ['staff', $s->email]) }}', '{{ $s->name }}')">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            @empty
+                <p class="empty">No staff found.</p>
+            @endforelse
+        </div>
     </div>
 </div>
 
@@ -120,7 +249,15 @@
         <form method="POST" action="{{ route('admin.users.store') }}" id="userForm">
             @csrf
             <input type="hidden" name="_method" id="methodField" value="POST">
+            <input type="hidden" name="new_role" id="newRoleField" value="">
 
+            <div class="form-group">
+                <label>Role</label>
+                <select name="role" id="roleSelect" class="admin-input">
+                    <option value="customer">Customer</option>
+                    <option value="staff">Staff</option>
+                </select>
+            </div>
             <div class="form-group">
                 <label>Name</label>
                 <input type="text" name="name" required class="admin-input" id="inputName">
@@ -147,33 +284,37 @@
             </div>
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" name="password" class="admin-input" id="inputPassword" placeholder="Leave empty to keep current password">
+                <div class="password-wrapper">
+                    <input type="password" name="password" class="admin-input" id="inputPassword" placeholder="Leave empty to keep current password">
+                    <span class="toggle-password" onclick="togglePasswordVisibility()">👁</span>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Role</label>
-                <select name="role" id="roleSelect" class="admin-input">
-                    <option value="customer">Customer</option>
-                    <option value="staff">Staff</option>
-                </select>
-            </div>
-            <button type="submit" class="create-btn" id="modalSubmit">➕ Add User</button>
+            <button type="submit" class="create-btn" id="modalSubmit">
+                <i class="fas fa-plus"></i> Add User
+            </button>
         </form>
     </div>
 </div>
 
 <!-- Delete Confirmation Modal -->
 <div id="deleteModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content delete-modal">
         <span class="close-modal" id="closeDeleteModal">&times;</span>
+        <div class="delete-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
         <h3>Confirm Delete</h3>
         <p id="deleteMessage">Are you sure you want to delete this user?</p>
-        <div style="text-align:center; margin-top:20px;">
-            <form id="deleteForm" method="POST">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn-danger" style="margin-right:10px;">Yes, Delete</button>
-            </form>
-        </div>
+        <form id="deleteForm" method="POST" class="delete-form-actions">
+            @csrf
+            @method('DELETE')
+            <button type="button" class="btn-cancel" onclick="document.getElementById('deleteModal').style.display='none'">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="submit" class="btn-danger">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+        </form>
     </div>
 </div>
 
@@ -181,60 +322,616 @@
 
 @section('styles')
 <style>
-
+/* Base Styles */
 .page-title {
-    font-size: 30px;
+    font-size: 28px;
     font-weight: 800;
     letter-spacing: 0.3px;
-    margin-bottom: 4px;
+    margin-bottom: 20px;
+    color: #2c3e50;
 }
-.alert-success { background:#d4edda; color:#155724; padding:10px 15px; border-radius:8px; margin-bottom:15px; font-weight:600; }
-.alert-error { background:#f8d7da; color:#721c24; padding:10px 15px; border-radius:8px; margin-bottom:15px; font-weight:600; }
 
-.action-bar { text-align:right; margin-bottom:20px; }
-.add-btn { background:#ff3c00; color:white; padding:8px 14px; border-radius:8px; font-weight:600; border:none; cursor:pointer; transition:0.3s; }
-.add-btn:hover { background:#ff6e40; }
+.alert-success { 
+    background: #d4edda; 
+    color: #155724; 
+    padding: 12px 16px; 
+    border-radius: 8px; 
+    margin-bottom: 15px; 
+    font-weight: 600;
+    border-left: 4px solid #28a745;
+}
 
-.btn-warning, .btn-danger { font-size:14px; padding:6px 12px; border-radius:6px; border:none; cursor:pointer; font-weight:600; transition:0.3s; }
-.btn-warning { background:#ffc107; color:white; }
-.btn-warning:hover { background:#e0a800; }
-.btn-danger { background:#e74c3c; color:white; }
-.btn-danger:hover { background:#c82333; }
+.alert-error { 
+    background: #f8d7da; 
+    color: #721c24; 
+    padding: 12px 16px; 
+    border-radius: 8px; 
+    margin-bottom: 15px; 
+    font-weight: 600;
+    border-left: 4px solid #dc3545;
+}
 
-.table-container { background:white; border-radius:12px; padding:20px; overflow-x:auto; box-shadow:0 6px 20px rgba(0,0,0,0.08); }
-.admin-table { width:100%; border-collapse:collapse; font-size:14px; }
-.admin-table th, .admin-table td { padding:12px 16px; text-align:left; }
-.admin-table th { background:#ff5722; color:white; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; }
-.admin-table tr:nth-child(even) { background:#fff7f0; }
-.admin-table tr:hover { background:#ffe0d6; transition:0.3s; }
+/* Action Bar */
+.action-bar { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
 
-.status { padding:5px 12px; border-radius:12px; font-size:12px; font-weight:600; display:inline-block; text-align:center; }
-.status.available { background:#d4edda; color:#155724; }
-.status.blocked { background:#f8d7da; color:#721c24; }
+.per-page-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
-.empty { text-align:center; color:#999; padding:20px; }
+.per-page-form label {
+    font-weight: 600;
+    color: #555;
+    white-space: nowrap;
+}
 
-.tab-content { display:none; }
-.tab-content.active { display:block; }
-.tab-link { background:grey; border:none; padding:8px 16px; margin:0 5px; border-radius:8px; cursor:pointer; transition:0.3s; font-weight:500; }
-.tab-link.active { background:#ff5722; color:white; font-weight:600; }
+.per-page-form select {
+    width: auto;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-weight: 500;
+}
 
-.modal { display:none; position:fixed; z-index:1001; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; }
-.modal-content { background:white; border-radius:12px; width:450px; max-width:95%; position:relative; box-shadow:0 8px 30px rgba(0,0,0,0.2); text-align:center; padding:30px 35px; transition:0.3s; }
-.modal-content h3 { background: linear-gradient(90deg,#ff5722,#ff784e); color:white; padding:12px 15px; border-radius:8px; margin-bottom:20px; font-size:18px; }
-.close-modal { position:absolute; top:15px; right:15px; background:#ff3d00; color:white; width:32px; height:32px; border:none; border-radius:50%; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.3s; }
-.close-modal:hover { background:#e53935; }
+.add-btn { 
+    background: var(--green-turquoise); 
+    color: white; 
+    padding: 10px 20px; 
+    border-radius: 8px; 
+    font-weight: 600; 
+    border: none; 
+    cursor: pointer; 
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-.form-group { margin-bottom:15px; text-align:left; }
-.form-group label { display:block; margin-bottom:5px; font-weight:600; }
-.admin-input, select { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; transition:0.3s; }
-.admin-input:focus, select:focus { border-color:#ff5722; box-shadow:0 0 5px rgba(255,87,34,0.5); outline:none; }
+.add-btn:hover { 
+    background: var(--green-turquoise-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
 
-.create-btn { background:#28a745; color:white; padding:10px 15px; border-radius:8px; font-weight:600; border:none; cursor:pointer; width:100%; transition:0.3s; }
-.create-btn:hover { background:#218838; }
+/* PASSWORD TOGGLE */
+.password-wrapper {
+    position: relative;
+}
 
-@media(max-width:768px){
-    .admin-table th, .admin-table td { font-size:14px; padding:10px; }
+.password-wrapper .admin-input {
+    padding-right: 45px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 18px;
+    user-select: none;
+}
+
+/* Tabs */
+.tabs-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 25px;
+    gap: 10px;
+}
+
+.tab-link { 
+    background: #e0e0e0; 
+    border: none; 
+    padding: 12px 24px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    transition: all 0.3s; 
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+}
+
+.tab-link:hover {
+    background: #d0d0d0;
+}
+
+.tab-link.active { 
+    background: #ff5722; 
+    color: white;
+    box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+}
+
+.tab-content { 
+    display: none; 
+}
+
+.tab-content.active { 
+    display: block; 
+}
+
+/* Desktop Table */
+.table-container { 
+    background: white; 
+    border-radius: 12px; 
+    padding: 20px; 
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.desktop-table {
+    display: block;
+    overflow-x: auto;
+}
+
+.mobile-cards {
+    display: none;
+}
+
+.admin-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 14px;
+    min-width: 700px;
+}
+
+.admin-table th, .admin-table td { 
+    padding: 12px 16px; 
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.admin-table th { 
+    background: #ff5722; 
+    color: white; 
+    font-weight: 600; 
+    letter-spacing: 0.5px; 
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.admin-table tbody tr:nth-child(even) { 
+    background: #fff7f0; 
+}
+
+.admin-table tbody tr:hover { 
+    background: #ffe0d6; 
+    transition: 0.3s; 
+}
+
+.admin-actions {
+    display: flex;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.btn-warning, .btn-danger { 
+    font-size: 14px; 
+    padding: 8px 12px; 
+    border-radius: 6px; 
+    border: none; 
+    cursor: pointer; 
+    font-weight: 600; 
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-warning { 
+    background: var(--blue-steel); 
+    color: white; 
+}
+
+.btn-warning:hover { 
+    background: var(--blue-steel-dark);
+    transform: translateY(-2px);
+}
+
+.btn-danger { 
+    background: var(--red-mint); 
+    color: white; 
+}
+
+.btn-danger:hover { 
+    background: var(--red-mint-dark);
+    transform: translateY(-2px);
+}
+
+.status { 
+    padding: 6px 14px; 
+    border-radius: 20px; 
+    font-size: 12px; 
+    font-weight: 700; 
+    display: inline-block; 
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status.available { 
+    background: #d4edda; 
+    color: #155724; 
+}
+
+.status.blocked { 
+    background: #f8d7da; 
+    color: #721c24; 
+}
+
+.empty { 
+    text-align: center; 
+    color: #999; 
+    padding: 40px 20px;
+    font-style: italic;
+}
+
+/* Mobile Card Styles */
+.user-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 2px solid #f0f0f0;
+    transition: all 0.3s;
+}
+
+.user-card:hover {
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff5722, #ff784e);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.staff-avatar {
+    background: linear-gradient(135deg, #3498db, #5dade2);
+}
+
+.card-user-info {
+    flex: 1;
+}
+
+.card-user-info h3 {
+    margin: 0 0 5px 0;
+    font-size: 18px;
+    color: #2c3e50;
+}
+
+.user-id {
+    font-size: 12px;
+    color: #999;
+    font-weight: 600;
+}
+
+.card-body {
+    margin-bottom: 15px;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.info-row i {
+    width: 20px;
+    color: #ff5722;
+    font-size: 14px;
+}
+
+.info-row span {
+    flex: 1;
+    word-break: break-word;
+}
+
+.card-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 2px solid #f0f0f0;
+}
+
+.card-actions button {
+    flex: 1;
+    justify-content: center;
+}
+
+/* Modal Styles */
+.modal { 
+    display: none; 
+    position: fixed; 
+    z-index: 1001; 
+    left: 0; 
+    top: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0,0,0,0.6);
+    justify-content: center; 
+    align-items: center;
+    padding: 20px;
+}
+
+.modal-content { 
+    background: white; 
+    border-radius: 12px; 
+    width: 100%;
+    max-width: 500px; 
+    position: relative; 
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    padding: 30px 25px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-content h3 { 
+    background: linear-gradient(90deg, #ff5722, #ff784e); 
+    color: white; 
+    padding: 12px 15px; 
+    border-radius: 8px; 
+    margin: -30px -25px 20px -25px;
+    font-size: 18px;
+    text-align: center;
+}
+
+.close-modal { 
+    position: absolute; 
+    top: 10px; 
+    right: 10px; 
+    background: #ff3d00; 
+    color: white; 
+    width: 32px; 
+    height: 32px; 
+    border: none; 
+    border-radius: 50%; 
+    font-size: 20px; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    transition: all 0.3s;
+    z-index: 10;
+}
+
+.close-modal:hover { 
+    background: #e53935;
+    transform: rotate(90deg);
+}
+
+.form-group { 
+    margin-bottom: 15px; 
+    text-align: left; 
+}
+
+.form-group label { 
+    display: block; 
+    margin-bottom: 6px; 
+    font-weight: 600;
+    color: #555;
+}
+
+.admin-input, select { 
+    width: 100%; 
+    padding: 10px 12px; 
+    border-radius: 8px; 
+    border: 1px solid #ccc; 
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.admin-input:focus, select:focus { 
+    border-color: #ff5722; 
+    box-shadow: 0 0 0 3px rgba(255,87,34,0.1); 
+    outline: none; 
+}
+
+.create-btn { 
+    background: #28a745; 
+    color: white; 
+    padding: 12px 15px; 
+    border-radius: 8px; 
+    font-weight: 600; 
+    border: none; 
+    cursor: pointer; 
+    width: 100%; 
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 15px;
+}
+
+.create-btn:hover { 
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* Delete Modal Styles */
+.delete-modal {
+    text-align: center;
+}
+
+.delete-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 20px;
+    background: #fff3cd;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-icon i {
+    font-size: 36px;
+    color: #ff9800;
+}
+
+.delete-form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-cancel {
+    flex: 1;
+    background: #6c757d;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-cancel:hover {
+    background: #5a6268;
+}
+
+.delete-form-actions .btn-danger {
+    flex: 1;
+    padding: 10px 15px;
+    justify-content: center;
+}
+
+/* Responsive Styles */
+@media(max-width: 768px) {
+    .page-title {
+        font-size: 22px;
+        margin-bottom: 15px;
+    }
+
+    .action-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .per-page-form {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .add-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .tabs-container {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .tab-link {
+        justify-content: center;
+        padding: 10px 16px;
+    }
+
+    /* Hide desktop table, show mobile cards */
+    .desktop-table {
+        display: none;
+    }
+
+    .mobile-cards {
+        display: block;
+    }
+
+    .table-container {
+        padding: 15px;
+    }
+
+    .modal-content {
+        padding: 25px 20px;
+        max-height: 85vh;
+    }
+
+    .modal-content h3 {
+        margin: -25px -20px 15px -20px;
+        font-size: 16px;
+    }
+}
+
+@media(max-width: 480px) {
+    .page-title {
+        font-size: 20px;
+    }
+
+    .btn-text {
+        display: none;
+    }
+
+    .add-btn {
+        padding: 10px 16px;
+    }
+
+    .user-card {
+        padding: 15px;
+    }
+
+    .card-header {
+        flex-wrap: wrap;
+    }
+
+    .user-avatar {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+    }
+
+    .card-user-info h3 {
+        font-size: 16px;
+    }
+
+    .info-row {
+        font-size: 13px;
+    }
+
+    .card-actions {
+        flex-direction: column;
+    }
+
+    .card-actions button {
+        width: 100%;
+    }
 }
 </style>
 @endsection
@@ -249,7 +946,7 @@ function showTab(e, tabId){
     document.getElementById(tabId).classList.add('active');
 }
 
-// User Modal
+// User Modal Elements
 const openModalBtn = document.getElementById('openModal');
 const modal = document.getElementById('userModal');
 const closeModalBtn = document.getElementById('closeModal');
@@ -266,6 +963,39 @@ const inputEmail = document.getElementById('inputEmail');
 const inputPhone = document.getElementById('inputPhone');
 const inputAddress = document.getElementById('inputAddress');
 const inputPassword = document.getElementById('inputPassword');
+const newRoleField = document.getElementById('newRoleField');
+
+// Live Search Functionality
+const userSearchInput = document.getElementById('userSearch');
+if (userSearchInput) {
+    userSearchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        // Search in Customers table (desktop)
+        document.querySelectorAll('#customers .desktop-table .admin-table tbody tr').forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+        
+        // Search in Staff table (desktop)
+        document.querySelectorAll('#staff .desktop-table .admin-table tbody tr').forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+        
+        // Search in Customers cards (mobile)
+        document.querySelectorAll('#customers .mobile-cards .user-card').forEach(card => {
+            const text = card.textContent.toLowerCase();
+            card.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+        
+        // Search in Staff cards (mobile)
+        document.querySelectorAll('#staff .mobile-cards .user-card').forEach(card => {
+            const text = card.textContent.toLowerCase();
+            card.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+}
 
 // Open Add User modal
 openModalBtn.addEventListener('click', () => {
@@ -274,16 +1004,19 @@ openModalBtn.addEventListener('click', () => {
     methodField.value = 'POST';
     userForm.action = "{{ route('admin.users.store') }}";
     modalTitle.textContent = 'Add New User';
-    modalSubmit.textContent = '➕ Add User';
+    modalSubmit.innerHTML = '<i class="fas fa-plus"></i> Add User';
     addressField.style.display = 'block';
     staffRoleField.style.display = 'none';
+    newRoleField.value = '';
 });
 
 // Close modal
-closeModalBtn.addEventListener('click', ()=> modal.style.display='none');
-window.addEventListener('click', e => { if(e.target==modal) modal.style.display='none'; });
+closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
+window.addEventListener('click', e => { 
+    if(e.target == modal) modal.style.display = 'none'; 
+});
 
-// Show/hide address & staff role based on role selection
+// Role selection handler
 roleSelect.addEventListener('change', () => {
     if(roleSelect.value === 'staff'){
         addressField.style.display = 'none';
@@ -292,14 +1025,20 @@ roleSelect.addEventListener('change', () => {
         addressField.style.display = 'block';
         staffRoleField.style.display = 'none';
     }
+    if(methodField.value === 'PUT') {
+        newRoleField.value = roleSelect.value;
+    }
 });
+
+// Initialize field visibility
 addressField.style.display = (roleSelect.value === 'staff') ? 'none' : 'block';
 staffRoleField.style.display = (roleSelect.value === 'staff') ? 'block' : 'none';
 
-// Open Edit Modal dynamically
+// Open Edit Modal
 function openEditModal(user) {
     modal.style.display = 'flex';
     userForm.reset();
+    
     if(user.role === 'staff'){
         userForm.action = `/admin/users/staff/${user.email}`;
         methodField.value = 'PUT';
@@ -307,13 +1046,17 @@ function openEditModal(user) {
         userForm.action = `/admin/users/customer/${user.email}`;
         methodField.value = 'PUT';
     }
+    
     modalTitle.textContent = 'Edit User';
-    modalSubmit.textContent = 'Update User';
+    modalSubmit.innerHTML = '<i class="fas fa-save"></i> Update User';
     inputName.value = user.name;
     inputEmail.value = user.email;
     inputPhone.value = user.phone ?? '';
     inputPassword.value = '';
+    inputPassword.placeholder = 'Leave empty to keep current password';
     roleSelect.value = user.role;
+    newRoleField.value = user.role;
+    
     if(user.role === 'customer'){
         addressField.style.display = 'block';
         inputAddress.value = user.address ?? '';
@@ -326,21 +1069,28 @@ function openEditModal(user) {
     }
 }
 
-// Delete Modal
+// Delete Modal Elements
 const deleteModal = document.getElementById('deleteModal');
 const closeDeleteModal = document.getElementById('closeDeleteModal');
-const cancelDelete = document.getElementById('cancelDelete');
 const deleteForm = document.getElementById('deleteForm');
 const deleteMessage = document.getElementById('deleteMessage');
 
+// Open Delete Modal
 function openDeleteModal(formAction, userName){
     deleteForm.action = formAction;
     deleteMessage.textContent = `Are you sure you want to delete "${userName}"?`;
     deleteModal.style.display = 'flex';
 }
 
-closeDeleteModal.addEventListener('click', ()=> deleteModal.style.display='none');
-cancelDelete.addEventListener('click', ()=> deleteModal.style.display='none');
-window.addEventListener('click', e => { if(e.target == deleteModal) deleteModal.style.display='none'; });
+// Close delete modal
+closeDeleteModal.addEventListener('click', () => deleteModal.style.display = 'none');
+window.addEventListener('click', e => { 
+    if(e.target == deleteModal) deleteModal.style.display = 'none'; 
+});
+
+function togglePasswordVisibility() {
+    const passwordField = document.getElementById('inputPassword');
+    passwordField.type = passwordField.type === 'password' ? 'text' : 'password';
+}
 </script>
 @endsection

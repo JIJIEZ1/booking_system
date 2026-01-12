@@ -217,7 +217,7 @@ footer { background: var(--main-orange); color:#fff; text-align:center; padding:
         <tr><th>Description</th><th>Details</th></tr>
         <tr><td>Facility</td><td>{{ $booking->facility }}</td></tr>
         <tr><td>Date</td><td>{{ $booking->booking_date }}</td></tr>
-        <tr><td>Time</td><td>{{ $booking->booking_time }}</td></tr>
+        <tr><td>Time</td><td>{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</td></tr>
         <tr><td>Duration</td><td>{{ $booking->duration }} hour(s)</td></tr>
         <tr><td>Amount</td><td>RM {{ number_format($booking->amount, 2) }}</td></tr>
     </table>

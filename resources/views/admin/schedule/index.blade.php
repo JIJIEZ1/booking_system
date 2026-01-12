@@ -1,732 +1,199 @@
+@extends('layouts.admin')
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Manage Schedule | Admin Panel</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+@section('title', 'Manage Schedule | Admin Panel')
 
-<!-- Google Font -->
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+@section('content')
 
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-<!-- Custom Admin CSS -->
-<link rel="stylesheet" href="https://pktdr.online/resources/css/admin.css">
-
-<style>
-:root {
-    --orange: #ff3c00;
-    --orange-dark: #e03a00;
-    --green-turquoise: #1abc9c;
-    --green-turquoise-dark: #16a085;
-    --blue-steel: #4682b4;
-    --blue-steel-dark: #36648b;
-    --red-mint: #e74c3c;
-    --red-mint-dark: #c0392b;
-    --dark: #1f1f1f;
-    --gray: #f5f5f5;
-    --shadow: 0 6px 20px rgba(0,0,0,0.12);
-    --transition: all 0.3s ease;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Montserrat',sans-serif; background:var(--gray); color:#333; }
-
-/* NAVBAR */
-nav {
-    background: linear-gradient(to right, var(--orange), #ff6e40);
-    color:#fff;
-    padding:15px 30px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    box-shadow:0 4px 15px rgba(0,0,0,0.15);
-    position: sticky;
-    top:0;
-    z-index: 1000;
-}
-.nav-left { display:flex; align-items:center; gap:15px; }
-.logo { height:45px; border-radius:6px; background:#fff; padding:4px; }
-.title { font-size:22px; font-weight:700; color:#fff; letter-spacing:0.5px; }
-
-/* USER INFO DROPDOWN */
-.user-info { display:flex; align-items:center; gap:10px; position:relative; }
-.user-icon {
-    width:40px; height:40px; background:#fff; color:var(--orange);
-    font-weight:700; border-radius:50%; display:flex;
-    align-items:center; justify-content:center; cursor:pointer;
-    box-shadow:0 3px 8px rgba(0,0,0,0.15);
-}
-.user-name { font-weight:600; color:#fff; }
-
-.dropdown {
-    position:absolute; top:55px; right:0; background:#fff; border-radius:12px;
-    width:200px; box-shadow:0 10px 25px rgba(0,0,0,0.2);
-    opacity:0; transform:translateY(-10px); pointer-events:none;
-    transition:0.3s;
-    overflow:hidden; z-index:1001;
-}
-.dropdown.show { opacity:1; transform:translateY(0); pointer-events:auto; }
-.dropdown a, .dropdown button {
-    width:100%; padding:12px 18px; display:flex; gap:10px;
-    border:none; background:none; color:var(--orange); font-weight:600; cursor:pointer; text-decoration:none;
-    transition:var(--transition);
-}
-.dropdown a:hover, .dropdown button:hover { background:#ffe5d1; }
-
-/* CONTAINER */
-.container { display:flex; min-height: calc(100vh - 80px); transition:var(--transition); }
-
-/* SIDEBAR */
-.sidebar {
-    width: 250px;
-    background: var(--dark);
-    padding-top:25px;
-    min-height: calc(100vh - 80px);
-    flex-shrink:0;
-    transition: var(--transition);
-    position: relative;
-    border-radius:0 12px 12px 0;
-}
-.sidebar ul { list-style:none; padding-left:0; }
-.sidebar ul li a {
-    display:flex; align-items:center; gap:12px;
-    padding:14px 25px; color:#ddd; text-decoration:none;
-    font-weight:500;
-    transition:var(--transition);
-    border-radius:0 25px 25px 0;
-}
-.sidebar ul li a i { width:20px; text-align:center; }
-.sidebar ul li a.active,
-.sidebar ul li a:hover { background: var(--orange); color:#fff; }
-
-/* MAIN CONTENT */
-.main { flex:1; padding:40px 30px; min-height: calc(100vh - 80px); }
-
-/* TAB BUTTONS */
-.tab-link {
-    padding:10px 22px; cursor:pointer; background: var(--orange);
-    border:none; color:white; margin:0 5px; border-radius:6px; font-weight:600;
-    transition:var(--transition);
-}
-.tab-link.active { background:#ff6b00; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
-
-/* TABLE STYLING */
-.admin-table {
-    width:100%; border-collapse:collapse; background:#fff; margin-top:20px; border-radius:12px; overflow:hidden;
-    box-shadow:0 6px 18px rgba(0,0,0,0.08);
-}
-.admin-table th, .admin-table td { padding:14px 16px; border-bottom:1px solid #eee; text-align:left; }
-.admin-table th { background: var(--orange); color:#fff; font-weight:600; letter-spacing:0.5px; }
-.admin-table tr:nth-child(even){ background:#f9f9f9; }
-.admin-table tr:hover { background:#fff4e6; }
-.admin-actions button { cursor:pointer; margin-right:5px; border:none; padding:6px 14px; border-radius:6px; font-weight:600; color:#fff; transition:var(--transition); }
-
-/* Buttons - consistent */
-.btn-view { background: #3498db; }
-.btn-view:hover { background:#2980b9; }
-.btn-warning { background: var(--blue-steel); color: white; }
-.btn-warning:hover { background: var(--blue-steel-dark); }
-.btn-danger { background: var(--red-mint); color: white; }
-.btn-danger:hover { background: var(--red-mint-dark); }
-.add-btn { background: var(--green-turquoise); color:white; padding:10px 20px; border-radius:8px; font-weight:600; text-decoration:none; transition:var(--transition); }
-.add-btn:hover { background: var(--green-turquoise-dark); }
-
-.page-title { font-size:28px; font-weight:700; color: var(--orange); margin-bottom:20px; letter-spacing:0.5px; }
-
-/* RESPONSIVE - MOBILE */
-.hamburger { display:none; font-size:28px; cursor:pointer; color:#fff; margin-right:10px; }
-@media (max-width:992px) {
-    .hamburger { display:block; }
-    .sidebar {
-        position: fixed;
-        left: -250px;
-        top: 80px;
-        height: calc(100% - 80px);
-        z-index:1000;
-        border-radius:0;
-    }
-    .sidebar.active { left:0; }
-    .main { padding:20px; transition: margin-left 0.3s ease; }
-}
-
-/* Table Container */
-.table-container {
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 30px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-}
-.table-container h3 {
-    font-size: 22px;
-    margin-bottom: 15px;
-    color: #ff3c00;
-}
-
-/* Admin Table */
-.admin-table {
-    width: 100%;
-    border-collapse: collapse;
-    overflow: hidden;
-    border-radius: 12px;
-}
-.admin-table thead {
-    background: linear-gradient(90deg, #ff3c00, #ff6e40);
-    color: #fff;
-    font-weight: 600;
-}
-.admin-table th, .admin-table td { padding: 14px 16px; text-align: left; }
-.admin-table tbody tr { transition: all 0.25s ease; }
-.admin-table tbody tr:nth-child(even) { background: #f9f9f9; }
-.admin-table tbody tr:hover { background: #fff4e6; }
-
-/* Status Badges */
-.status {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    display: inline-block;
-}
-.status.pending { background: #fff3cd; color: #856404; }
-.status.completed { background: #d4edda; color: #155724; }
-.status.cancelled { background: #f8d7da; color: #721c24; }
-
-/* Smooth transition for everything */
-* { transition: var(--transition); }
-
-/* PAGINATION STYLES */
-.pagination {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    gap: 5px;
-}
-.pagination li {
-    display: inline-block;
-}
-.pagination li a, .pagination li span {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    color: var(--orange);
-    text-decoration: none;
-    border-radius: 4px;
-    font-weight: 600;
-}
-.pagination li.active span {
-    background: var(--orange);
-    color: #fff;
-    border-color: var(--orange);
-}
-.pagination li.disabled span {
-    color: #ccc;
-    cursor: not-allowed;
-}
-.pagination li a:hover {
-    background: #ffe5d1;
-}
-
-</style>
-
-
-<style>
-/* Page Title */
-.page-title {
-    font-size: 30px;
-    font-weight: 800;
-    letter-spacing: 0.3px;
-    margin-bottom: 20px;
-}
-
-/* Alert Messages */
-.alert-success {
-    background: #d4edda;
-    color: #155724;
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    font-weight: 600;
-}
-.alert-error {
-    background: #f8d7da;
-    color: #721c24;
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    font-weight: 600;
-}
-
-/* Action Button */
-.action-bar { margin-bottom:20px; text-align:right; display: flex; justify-content: flex-end; }
-.add-btn {
-    background: var(--green-turquoise);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    transition: 0.3s;
-}
-.add-btn { background:var(--green-turquoise); color:white; padding:10px 20px; border-radius:8px; font-weight:600; border:none; cursor:pointer; transition:0.3s; }
-.add-btn:hover { background:var(--green-turquoise-dark); }
-
-/* Table Styling */
-.table-container {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    overflow-x: auto;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-}
-.admin-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-}
-.admin-table th, .admin-table td {
-    padding: 12px 16px;
-    text-align: left;
-}
-.admin-table th {
-    background: #ff5722;
-    color: white;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-.admin-table tr:nth-child(even) { background: #fff7f0; }
-.admin-table tr:hover { background: #ffe0d6; transition: 0.3s; }
-
-/* Status Badge */
-.status {
-    padding: 5px 12px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-    display: inline-block;
-    text-align: center;
-}
-.status.blocked { background: #f8d7da; color: #721c24; }
-.status.available { background: #d4edda; color: #155724; }
-
-/* Empty Table Row */
-.empty { text-align: center; color: #999; padding: 20px; }
-
-/* Buttons inside Table */
-.btn-warning, .btn-danger {
-    font-size: 14px;
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    transition: 0.3s;
-}
-.btn-warning { background: var(--blue-steel); color: white; }
-.btn-warning:hover { background: var(--blue-steel-dark); }
-.btn-danger { background: var(--red-mint); color: white; }
-.btn-danger:hover { background: var(--red-mint-dark); }
-
-/* Modal Styling */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1001;
-    left: 0; top: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    justify-content: center;
-    align-items: center;
-}
-/* Scrollable modal content */
-.modal-content {
-    background: white;
-    border-radius: 12px;
-    width: 450px;
-    max-width: 95%;
-    max-height: 85vh;              /* ✅ limit height */
-    overflow-y: auto;              /* ✅ enable scroll */
-    position: relative;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    padding: 30px 35px;
-}
-
-/* Smooth scrollbar */
-.modal-content::-webkit-scrollbar {
-    width: 6px;
-}
-.modal-content::-webkit-scrollbar-thumb {
-    background: #ff5722;
-    border-radius: 10px;
-}
-.modal-content::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-.modal-content h3 {
-    background: linear-gradient(90deg, #ff5722, #ff784e);
-    padding: 12px 15px;
-    color: white;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-size: 18px;
-}
-.close-modal {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: #ff3d00;
-    color: white;
-    width: 32px; height: 32px;
-    border: none;
-    border-radius: 50%;
-    font-size: 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.3s;
-}
-.close-modal:hover { background: #e53935; }
-
-/* Form Inputs */
-.form-group { margin-bottom: 15px; text-align: left; }
-.form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
-.admin-input {
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    transition: 0.3s;
-}
-.admin-input:focus {
-    border-color: #ff5722;
-    box-shadow: 0 0 5px rgba(255, 87, 34, 0.5);
-    outline: none;
-}
-
-/* Submit Button */
-.create-btn {
-    background: #28a745;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 8px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-    transition: 0.3s;
-}
-.create-btn:hover { background: #218838; }
-
-/* Schedule Slots Preview */
-.slots-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    margin-top: 10px;
-}
-.slot {
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-}
-.slot.free { background: #d0f0c0; color: #006600; border: 2px solid #00a600; cursor: pointer; transition: all 0.2s; }
-.slot.free:hover { background: #b8f0a0; transform: scale(1.05); }
-.slot.booked { background: #f8d0d0; color: #990000; cursor: not-allowed; }
-.slot.blocked { background: #b0b0b0; color: white; cursor: not-allowed; }
-.slot.past { background: #e0e0e0; color: #777; cursor: not-allowed; }
-.slot.selected { background: #ffa86b; border: 2px solid #ff3c00; color: white; font-weight: bold; }
-
-/* Responsive */
-@media(max-width:768px){
-    .admin-table th, .admin-table td { font-size: 14px; padding: 10px; }
-    .page-title { font-size: 24px; }
-    .action-bar { text-align: center; }
-    .add-btn { width: 100%; margin-bottom: 10px; }
-}
-</style>
-
-</head>
-<body>
-
-
-<!-- NAVBAR -->
-<nav>
-    <div class="nav-left">
-        <span class="hamburger" id="hamburger"><i class="fas fa-bars"></i></span>
-        <img src="https://pktdr.online/images/logo.jpeg" class="logo">
-        <span class="title">Admin Dashboard</span>
-    </div>
-    <div class="user-info">
-        <div class="user-icon" id="adminToggle">J</div>
-        <span class="user-name">jiji</span>
-        <div class="dropdown" id="adminDropdown">
-            <a href="https://pktdr.online/admin/profile"><i class="fa fa-user"></i> My Profile</a>
-            <a href="#" id="logoutLink">
-    <i class="fa fa-sign-out-alt"></i> Logout
-</a>
-
-<form id="logout-form" action="https://pktdr.online/logout" method="POST" style="display:none;">
-    <input type="hidden" name="_token" value="8VKdcY0MQSVYSr3JxVyIG4OM0JaSh5xJE1PfAbit" autocomplete="off"></form>
-
-        </div>
-    </div>
-</nav>
-
-<div class="container">
-    <!-- SIDEBAR -->
-    <div class="sidebar" id="sidebar">
-        <ul>
-            <li><a href="https://pktdr.online/admin/dashboard" class=""><i class="fas fa-home"></i> Dashboard</a></li>
-            <li><a href="https://pktdr.online/admin/users" class=""><i class="fas fa-users"></i> Manage Users</a></li>
-            <li><a href="https://pktdr.online/admin/schedule" class="active"><i class="fas fa-calendar-alt"></i> Manage Schedule</a></li>
-            <li><a href="https://pktdr.online/admin/facilities" class=""><i class="fas fa-futbol"></i> Manage Facilities</a></li>
-            <li><a href="https://pktdr.online/admin/bookings" class=""><i class="fas fa-calendar-check"></i> Manage Bookings</a></li>
-            <li><a href="https://pktdr.online/admin/payments" class=""><i class="fas fa-credit-card"></i> Manage Payments</a></li>
-            <li><a href="https://pktdr.online/admin/feedback" class=""><i class="fas fa-star"></i> Manage Feedback</a></li>
-            <li>
-    <a href="https://pktdr.online/admin/reports" class="">
-        <i class="fas fa-chart-bar"></i> Reports
-    </a>
-</li>
-
-        </ul>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div class="main">
-        
 <h1 class="page-title">Manage Schedule</h1>
 
+@if(session('success'))
+    <p class="alert-success">
+        <i class="fas fa-check-circle"></i>
+        {{ session('success') }}
+    </p>
+@endif
 
+@if(session('error'))
+    <p class="alert-error">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ session('error') }}
+    </p>
+@endif
 
 <!-- Add Schedule Button -->
 <div class="action-bar">
-    <button class="add-btn" id="openScheduleModal" style="display: flex; align-items: center; gap: 8px;">
-        <i class="fas fa-plus"></i> Add Schedule
+    <button class="add-btn" id="openScheduleModal">
+        <i class="fas fa-plus"></i> 
+        <span class="btn-text">Add Schedule</span>
     </button>
+</div>
+
+<!-- Live Search -->
+<div style="margin-bottom:15px;">
+    <input type="text" id="scheduleSearch" placeholder="🔍 Search schedules..." class="admin-input" style="max-width:350px;">
 </div>
 
 <!-- Schedule Table -->
 <div class="table-container">
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Facility</th>
-                <th>Date</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-                        <tr>
-                <td>S006</td>
-                <td>Basketball</td>
-                <td>2026-01-02</td>
-                <td>12:00 AM</td>
-                <td>6:00 AM</td>
-                <td>
-                    <span class="status blocked">
-                        Blocked
-                    </span>
-                </td>
-                <td class="admin-actions">
-                    <!-- Edit button -->
-                    <button class="btn-warning" onclick="openEditScheduleModal({
-                        id: 'S006',
-                        facility: 'Basketball',
-                        date: '2026-01-02',
-                        start_time: '00:00:00',
-                        end_time: '06:00:00',
-                        status: 'Blocked'
-                    })"><i class="fas fa-edit"></i></button>
+    <!-- Desktop Table View -->
+    <div class="desktop-table">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Facility</th>
+                    <th>Date</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($schedules as $s)
+                <tr>
+                    <td>{{ $s->schedule_id }}</td>
+                    <td>{{ $s->facility_type }}</td>
+                    <td>{{ \Carbon\Carbon::parse($s->date)->format('d M Y') }}</td>
+                    <td>{{ date("g:i A", strtotime($s->start_time)) }}</td>
+                    <td>{{ date("g:i A", strtotime($s->end_time)) }}</td>
+                    <td>
+                        <span class="status {{ strtolower($s->status) }}">
+                            {{ $s->status }}
+                        </span>
+                    </td>
+                    <td class="admin-actions">
+                        <button class="btn-warning" onclick="openEditScheduleModal({
+                            id: '{{ $s->schedule_id }}',
+                            facility: '{{ $s->facility_type }}',
+                            date: '{{ $s->date }}',
+                            start_time: '{{ $s->start_time }}',
+                            end_time: '{{ $s->end_time }}',
+                            status: '{{ $s->status }}'
+                        })" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-danger" onclick="openDeleteScheduleModal('{{ $s->schedule_id }}', '{{ $s->facility_type }}', '{{ $s->date }}')" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="7" class="empty">No schedules found.</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 
-                    <!-- Delete button -->
-                    <button class="btn-danger" onclick="openDeleteScheduleModal('S006', 'Basketball', '2026-01-02')"><i class="fas fa-trash"></i>️</button>
-                </td>
-            </tr>
-                        <tr>
-                <td>S007</td>
-                <td>jiji</td>
-                <td>2026-01-05</td>
-                <td>9:00 PM</td>
-                <td>11:00 PM</td>
-                <td>
-                    <span class="status blocked">
-                        Blocked
-                    </span>
-                </td>
-                <td class="admin-actions">
-                    <!-- Edit button -->
-                    <button class="btn-warning" onclick="openEditScheduleModal({
-                        id: 'S007',
-                        facility: 'jiji',
-                        date: '2026-01-05',
-                        start_time: '21:00:00',
-                        end_time: '23:00:00',
-                        status: 'Blocked'
-                    })"><i class="fas fa-edit"></i></button>
-
-                    <!-- Delete button -->
-                    <button class="btn-danger" onclick="openDeleteScheduleModal('S007', 'jiji', '2026-01-05')"><i class="fas fa-trash"></i>️</button>
-                </td>
-            </tr>
-                        <tr>
-                <td>S008</td>
-                <td>Bola Sepak</td>
-                <td>2026-01-01</td>
-                <td>12:00 AM</td>
-                <td>10:00 AM</td>
-                <td>
-                    <span class="status blocked">
-                        Blocked
-                    </span>
-                </td>
-                <td class="admin-actions">
-                    <!-- Edit button -->
-                    <button class="btn-warning" onclick="openEditScheduleModal({
-                        id: 'S008',
-                        facility: 'Bola Sepak',
-                        date: '2026-01-01',
-                        start_time: '00:00:00',
-                        end_time: '10:00:00',
-                        status: 'Blocked'
-                    })"><i class="fas fa-edit"></i></button>
-
-                    <!-- Delete button -->
-                    <button class="btn-danger" onclick="openDeleteScheduleModal('S008', 'Bola Sepak', '2026-01-01')"><i class="fas fa-trash"></i>️</button>
-                </td>
-            </tr>
-                        <tr>
-                <td>S009</td>
-                <td>futsal facility</td>
-                <td>2026-01-06</td>
-                <td>1:00 AM</td>
-                <td>4:00 AM</td>
-                <td>
-                    <span class="status available">
-                        Available
-                    </span>
-                </td>
-                <td class="admin-actions">
-                    <!-- Edit button -->
-                    <button class="btn-warning" onclick="openEditScheduleModal({
-                        id: 'S009',
-                        facility: 'futsal facility',
-                        date: '2026-01-06',
-                        start_time: '01:00:00',
-                        end_time: '04:00:00',
-                        status: 'Available'
-                    })"><i class="fas fa-edit"></i></button>
-
-                    <!-- Delete button -->
-                    <button class="btn-danger" onclick="openDeleteScheduleModal('S009', 'futsal facility', '2026-01-06')"><i class="fas fa-trash"></i>️</button>
-                </td>
-            </tr>
-                        <tr>
-                <td>S010</td>
-                <td>Basketball</td>
-                <td>2026-01-09</td>
-                <td>7:00 AM</td>
-                <td>9:00 AM</td>
-                <td>
-                    <span class="status blocked">
-                        Blocked
-                    </span>
-                </td>
-                <td class="admin-actions">
-                    <!-- Edit button -->
-                    <button class="btn-warning" onclick="openEditScheduleModal({
-                        id: 'S010',
-                        facility: 'Basketball',
-                        date: '2026-01-09',
-                        start_time: '07:00:00',
-                        end_time: '09:00:00',
-                        status: 'Blocked'
-                    })"><i class="fas fa-edit"></i></button>
-
-                    <!-- Delete button -->
-                    <button class="btn-danger" onclick="openDeleteScheduleModal('S010', 'Basketball', '2026-01-09')"><i class="fas fa-trash"></i>️</button>
-                </td>
-            </tr>
-                        <tr>
-                <td>S011</td>
-                <td>jiji</td>
-                <td>2026-01-11</td>
-                <td>10:00 AM</td>
-                <td>7:00 PM</td>
-                <td>
-                    <span class="status booked">
-                        Booked
-                    </span>
-                </td>
-                <td class="admin-actions">
-                    <!-- Edit button -->
-                    <button class="btn-warning" onclick="openEditScheduleModal({
-                        id: 'S011',
-                        facility: 'jiji',
-                        date: '2026-01-11',
-                        start_time: '10:00:00',
-                        end_time: '19:00:00',
-                        status: 'Booked'
-                    })"><i class="fas fa-edit"></i></button>
-
-                    <!-- Delete button -->
-                    <button class="btn-danger" onclick="openDeleteScheduleModal('S011', 'jiji', '2026-01-11')"><i class="fas fa-trash"></i>️</button>
-                </td>
-            </tr>
-                    </tbody>
-    </table>
+    <!-- Mobile Card View -->
+    <div class="mobile-cards">
+        @forelse($schedules as $s)
+        <div class="schedule-card">
+            <div class="card-header">
+                <div class="facility-icon">
+                    <i class="fas fa-{{ $s->facility_type == 'Futsal' ? 'futbol' : ($s->facility_type == 'Takraw' ? 'volleyball-ball' : 'building') }}"></i>
+                </div>
+                <div class="facility-info">
+                    <h3>{{ $s->facility_type }}</h3>
+                    <span class="schedule-id">ID: {{ $s->schedule_id }}</span>
+                </div>
+                <span class="status {{ strtolower($s->status) }}">
+                    {{ $s->status }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <i class="fas fa-calendar"></i>
+                    <span>{{ \Carbon\Carbon::parse($s->date)->format('d M Y') }}</span>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-clock"></i>
+                    <span>{{ date("g:i A", strtotime($s->start_time)) }} - {{ date("g:i A", strtotime($s->end_time)) }}</span>
+                </div>
+            </div>
+            <div class="card-actions">
+                <button class="btn-warning" onclick="openEditScheduleModal({
+                    id: '{{ $s->schedule_id }}',
+                    facility: '{{ $s->facility_type }}',
+                    date: '{{ $s->date }}',
+                    start_time: '{{ $s->start_time }}',
+                    end_time: '{{ $s->end_time }}',
+                    status: '{{ $s->status }}'
+                })">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn-danger" onclick="openDeleteScheduleModal('{{ $s->schedule_id }}', '{{ $s->facility_type }}', '{{ $s->date }}')">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+        @empty
+        <p class="empty">No schedules found.</p>
+        @endforelse
+    </div>
 </div>
 
 <!-- Schedule Modal -->
 <div id="scheduleModal" class="modal">
     <div class="modal-content">
-        <span class="close-modal" id="closeScheduleModal">&times;</span>
-        <h3 id="modalTitle">Add Schedule</h3>
+        <span class="close-modal" id="closeScheduleModal">
+            <i class="fas fa-times"></i>
+        </span>
+        <h3 id="modalTitle">
+            <i class="fas fa-calendar-plus"></i> Add Schedule
+        </h3>
         <form method="POST" id="scheduleForm">
-            <input type="hidden" name="_token" value="8VKdcY0MQSVYSr3JxVyIG4OM0JaSh5xJE1PfAbit" autocomplete="off">            <input type="hidden" name="_method" id="scheduleMethodField" value="POST">
+            @csrf
+            <input type="hidden" name="_method" id="scheduleMethodField" value="POST">
 
             <div class="form-group">
-                <label>Facility</label>
+                <label>
+                    <i class="fas fa-building"></i> Facility
+                </label>
                 <select name="facility_type" class="admin-input" id="inputFacility" required>
-                                            <option value="futsal facility">futsal facility</option>
-                                            <option value="jiji">jiji</option>
-                                            <option value="Takraw Court">Takraw Court</option>
-                                            <option value="Basketball">Basketball</option>
-                                    </select>
+                    @foreach($facilities as $facility)
+                        <option value="{{ $facility->name }}">{{ $facility->name }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="form-group">
-                <label>Date</label>
+                <label>
+                    <i class="fas fa-calendar"></i> Date
+                </label>
                 <input type="date" name="date" class="admin-input" id="inputDate" required>
             </div>
-            <div class="form-group">
-    <label>Schedule Preview</label>
-    <div id="admin-slots" class="slots-container">
-        <p style="color:#888;">Select date & facility</p>
-    </div>
-</div>
 
             <div class="form-group">
-                <label>Start Time</label>
-                <input type="time" name="start_time" class="admin-input" id="inputStartTime" required>
+                <label>
+                    <i class="fas fa-clock"></i> Schedule Preview
+                </label>
+                <div id="admin-slots" class="slots-container">
+                    <p style="color:#888; font-size: 13px;">Select date & facility to view available slots</p>
+                </div>
             </div>
-            <div class="form-group">
-                <label>End Time</label>
-                <input type="time" name="end_time" class="admin-input" id="inputEndTime" required>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-hourglass-start"></i> Start Time
+                    </label>
+                    <input type="time" name="start_time" class="admin-input" id="inputStartTime" required>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-hourglass-end"></i> End Time
+                    </label>
+                    <input type="time" name="end_time" class="admin-input" id="inputEndTime" required>
+                </div>
             </div>
+
             <div class="form-group">
-                <label>Status</label>
+                <label>
+                    <i class="fas fa-info-circle"></i> Status
+                </label>
                 <select name="status" class="admin-input" id="inputStatus" required>
                     <option value="Available">Available</option>
                     <option value="Blocked">Blocked</option>
@@ -734,7 +201,7 @@ nav {
                 </select>
             </div>
 
-            <button type="submit" class="create-btn" id="modalSubmit" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <button type="submit" class="create-btn" id="modalSubmit">
                 <i class="fas fa-plus"></i> Add Schedule
             </button>
         </form>
@@ -743,56 +210,680 @@ nav {
 
 <!-- Delete Schedule Modal -->
 <div id="deleteModal" class="modal">
-    <div class="modal-content">
-        <span class="close-modal" id="closeDeleteModal">&times;</span>
+    <div class="modal-content delete-modal">
+        <span class="close-modal" id="closeDeleteModal">
+            <i class="fas fa-times"></i>
+        </span>
+        <div class="delete-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
         <h3>Delete Schedule</h3>
-        <p id="deleteMessage" style="padding:15px 0;">Are you sure you want to delete this schedule?</p>
-        <form method="POST" id="deleteForm">
-            <input type="hidden" name="_token" value="8VKdcY0MQSVYSr3JxVyIG4OM0JaSh5xJE1PfAbit" autocomplete="off">            <input type="hidden" name="_method" value="DELETE">            <button type="submit" class="btn-danger" style="width:100%;"><i class="fas fa-trash"></i> Delete</button>
+        <p id="deleteMessage">Are you sure you want to delete this schedule?</p>
+        <form method="POST" id="deleteForm" class="delete-form-actions">
+            @csrf
+            @method('DELETE')
+            <button type="button" class="btn-cancel" onclick="document.getElementById('deleteModal').style.display='none'">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="submit" class="btn-danger">
+                <i class="fas fa-trash"></i> Delete
+            </button>
         </form>
     </div>
 </div>
 
+@endsection
 
-    </div>
-</div>
+@section('styles')
+<style>
+/* Page Title */
+.page-title {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
 
-<script>
-// USER DROPDOWN
-const adminToggle = document.getElementById('adminToggle');
-const adminDropdown = document.getElementById('adminDropdown');
-adminToggle.addEventListener('click', e => {
-    e.stopPropagation();
-    adminDropdown.classList.toggle('show');
-});
-document.addEventListener('click', e => {
-    if(!adminDropdown.contains(e.target) && e.target !== adminToggle){
-        adminDropdown.classList.remove('show');
+/* Alert Messages */
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-left: 4px solid #28a745;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-left: 4px solid #dc3545;
+}
+
+/* Action Button */
+.action-bar { 
+    margin-bottom: 20px; 
+    text-align: right; 
+    display: flex; 
+    justify-content: flex-end; 
+}
+
+.add-btn {
+    background: var(--green-turquoise);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.add-btn:hover { 
+    background: var(--green-turquoise-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Table Container */
+.table-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.desktop-table {
+    display: block;
+    overflow-x: auto;
+}
+
+.mobile-cards {
+    display: none;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 700px;
+}
+
+.admin-table th, .admin-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.admin-table th {
+    background: #ff5722;
+    color: white;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.admin-table tbody tr:nth-child(even) { 
+    background: #fff7f0; 
+}
+
+.admin-table tbody tr:hover { 
+    background: #ffe0d6; 
+    transition: 0.3s; 
+}
+
+/* Status Badge */
+.status {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-block;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status.blocked { 
+    background: #f8d7da; 
+    color: #721c24; 
+}
+
+.status.available { 
+    background: #d4edda; 
+    color: #155724; 
+}
+
+.status.booked {
+    background: #d0e0f8;
+    color: #003366;
+}
+
+/* Empty Table Row */
+.empty { 
+    text-align: center; 
+    color: #999; 
+    padding: 40px 20px;
+    font-style: italic;
+}
+
+/* Action Buttons */
+.admin-actions {
+    display: flex;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.btn-warning, .btn-danger {
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-warning { 
+    background: var(--blue-steel); 
+    color: white; 
+}
+
+.btn-warning:hover { 
+    background: var(--blue-steel-dark);
+    transform: translateY(-2px);
+}
+
+.btn-danger { 
+    background: var(--red-mint); 
+    color: white; 
+}
+
+.btn-danger:hover { 
+    background: var(--red-mint-dark);
+    transform: translateY(-2px);
+}
+
+/* Mobile Card Styles */
+.schedule-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 2px solid #f0f0f0;
+    transition: all 0.3s;
+}
+
+.schedule-card:hover {
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.facility-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff5722, #ff784e);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.facility-info {
+    flex: 1;
+}
+
+.facility-info h3 {
+    margin: 0 0 5px 0;
+    font-size: 18px;
+    color: #2c3e50;
+}
+
+.schedule-id {
+    font-size: 12px;
+    color: #999;
+    font-weight: 600;
+}
+
+.card-body {
+    margin-bottom: 15px;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.info-row i {
+    width: 20px;
+    color: #ff5722;
+    font-size: 14px;
+}
+
+.info-row span {
+    flex: 1;
+}
+
+.card-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 2px solid #f0f0f0;
+}
+
+.card-actions button {
+    flex: 1;
+    justify-content: center;
+}
+
+/* Modal Styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    padding: 30px 25px;
+}
+
+.modal-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: #ff5722;
+    border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.modal-content h3 {
+    background: linear-gradient(90deg, #ff5722, #ff784e);
+    padding: 12px 15px;
+    color: white;
+    border-radius: 8px;
+    margin: -30px -25px 20px -25px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.close-modal {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ff3d00;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    z-index: 10;
+}
+
+.close-modal:hover { 
+    background: #e53935;
+    transform: rotate(90deg);
+}
+
+/* Form Inputs */
+.form-group { 
+    margin-bottom: 18px; 
+    text-align: left; 
+}
+
+.form-group label { 
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px; 
+    font-weight: 600;
+    color: #555;
+    font-size: 14px;
+}
+
+.form-group label i {
+    color: #ff5722;
+    width: 16px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.admin-input, select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.admin-input:focus, select:focus {
+    border-color: #ff5722;
+    box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.1);
+    outline: none;
+}
+
+/* Submit Button */
+.create-btn {
+    background: #28a745;
+    color: white;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 15px;
+    margin-top: 10px;
+}
+
+.create-btn:hover { 
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* Schedule Slots Preview */
+.slots-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    min-height: 60px;
+    align-items: center;
+}
+
+.slot {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.slot.free { 
+    background: #d0f0c0; 
+    color: #006600; 
+    border: 2px solid #00a600; 
+    cursor: pointer;
+}
+
+.slot.free:hover { 
+    background: #b8f0a0; 
+    transform: scale(1.05); 
+}
+
+.slot.booked { 
+    background: #f8d0d0; 
+    color: #990000; 
+    border: 2px solid #cc0000;
+    cursor: not-allowed; 
+}
+
+.slot.blocked { 
+    background: #b0b0b0; 
+    color: white;
+    border: 2px solid #888;
+    cursor: not-allowed; 
+}
+
+.slot.past { 
+    background: #e0e0e0; 
+    color: #777;
+    border: 2px solid #ccc;
+    cursor: not-allowed; 
+}
+
+.slot.locked {
+    background: #ffc107;
+    color: #663300;
+    border: 2px solid #e6b800;
+    cursor: not-allowed;
+}
+
+.slot.selected { 
+    background: #ffa86b; 
+    border: 2px solid #ff3c00; 
+    color: white; 
+    font-weight: bold; 
+}
+
+.slot.editing {
+    border: 2px solid #ff5722;
+    font-weight: bold;
+}
+
+/* Delete Modal Styles */
+.delete-modal {
+    text-align: center;
+    max-width: 400px;
+}
+
+.delete-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 20px;
+    background: #fff3cd;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-icon i {
+    font-size: 36px;
+    color: #ff9800;
+}
+
+.delete-form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-cancel {
+    flex: 1;
+    background: #6c757d;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-cancel:hover {
+    background: #5a6268;
+}
+
+.delete-form-actions .btn-danger {
+    flex: 1;
+    justify-content: center;
+}
+
+/* Responsive Styles */
+@media(max-width: 768px) {
+    .page-title { 
+        font-size: 22px;
+        margin-bottom: 15px;
     }
-});
 
-// Hamburger for mobile
-const hamburger = document.getElementById('hamburger');
-const sidebar = document.getElementById('sidebar');
-hamburger.addEventListener('click', e => {
-    e.stopPropagation();
-    sidebar.classList.toggle('active');
-});
-document.addEventListener('click', e => {
-    if(!sidebar.contains(e.target) && e.target !== hamburger){
-        sidebar.classList.remove('active');
+    .action-bar { 
+        justify-content: stretch;
     }
-});
-</script>
 
-<script>
-document.getElementById('logoutLink').addEventListener('click', function (e) {
-    e.preventDefault();
-    document.getElementById('logout-form').submit();
-});
-</script>
+    .add-btn { 
+        width: 100%;
+        justify-content: center;
+    }
 
+    /* Hide desktop table, show mobile cards */
+    .desktop-table {
+        display: none;
+    }
 
+    .mobile-cards {
+        display: block;
+    }
+
+    .table-container {
+        padding: 15px;
+    }
+
+    .modal-content {
+        padding: 25px 20px;
+        max-height: 85vh;
+    }
+
+    .modal-content h3 {
+        margin: -25px -20px 15px -20px;
+        font-size: 16px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .slots-container {
+        gap: 6px;
+        padding: 12px;
+    }
+
+    .slot {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
+
+@media(max-width: 480px) {
+    .page-title {
+        font-size: 20px;
+    }
+
+    .btn-text {
+        display: none;
+    }
+
+    .schedule-card {
+        padding: 15px;
+    }
+
+    .card-header {
+        flex-wrap: wrap;
+    }
+
+    .facility-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
+    }
+
+    .facility-info h3 {
+        font-size: 16px;
+    }
+
+    .info-row {
+        font-size: 13px;
+    }
+
+    .card-actions {
+        flex-direction: column;
+    }
+
+    .card-actions button {
+        width: 100%;
+    }
+
+    .alert-success, .alert-error {
+        font-size: 13px;
+        padding: 10px 12px;
+    }
+}
+</style>
+@endsection
+
+@section('scripts')
 <script>
 const openScheduleBtn = document.getElementById('openScheduleModal');
 const scheduleModal = document.getElementById('scheduleModal');
@@ -812,40 +903,84 @@ openScheduleBtn.addEventListener('click', () => {
     scheduleModal.style.display = 'flex';
     scheduleForm.reset();
     scheduleMethodField.value = 'POST';
-    scheduleForm.action = "https://pktdr.online/admin/schedule/store";
-    modalTitle.textContent = 'Add Schedule';
+    scheduleForm.action = "{{ route('admin.schedule.store') }}";
+    modalTitle.innerHTML = '<i class="fas fa-calendar-plus"></i> Add Schedule';
     modalSubmit.innerHTML = '<i class="fas fa-plus"></i> Add Schedule';
     
-    // ✅ Set today's date as default
     const today = new Date().toISOString().split('T')[0];
     inputDate.value = today;
     inputDate.setAttribute('min', today);
     
-    // Load slots when modal opens
     setTimeout(() => loadAdminSlots(), 100);
 });
 
-closeScheduleBtn.addEventListener('click', ()=> scheduleModal.style.display='none');
-window.addEventListener('click', e => { if(e.target==scheduleModal) scheduleModal.style.display='none'; });
+closeScheduleBtn.addEventListener('click', () => scheduleModal.style.display = 'none');
+window.addEventListener('click', e => { 
+    if(e.target == scheduleModal) scheduleModal.style.display = 'none'; 
+});
 
 function openEditScheduleModal(schedule){
     scheduleModal.style.display = 'flex';
     scheduleForm.reset();
     scheduleForm.action = "/admin/schedule/update/" + schedule.id;
     scheduleMethodField.value = 'PUT';
-    modalTitle.textContent = 'Edit Schedule';
+    modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Schedule';
     modalSubmit.innerHTML = '<i class="fas fa-save"></i> Update Schedule';
-    inputFacility.value = schedule.facility_type;
+    inputFacility.value = schedule.facility;
     inputDate.value = schedule.date;
     inputStartTime.value = schedule.start_time;
     inputEndTime.value = schedule.end_time;
     inputStatus.value = schedule.status;
     
-    // ✅ Remove min restriction for editing past schedules
     inputDate.removeAttribute('min');
     
-    // Load slots when modal opens
-    setTimeout(() => loadAdminSlots(), 100);
+    setTimeout(() => {
+        loadAdminSlots();
+        setTimeout(() => {
+            highlightExistingTimeRange(schedule.start_time, schedule.end_time);
+        }, 300);
+    }, 100);
+}
+
+function highlightExistingTimeRange(startTime, endTime) {
+    const slots = document.querySelectorAll('#admin-slots .slot');
+    const startHour = parseInt(startTime.split(':')[0]);
+    const endHour = parseInt(endTime.split(':')[0]);
+    
+    slots.forEach((slot, index) => {
+        const slotTime = slot.innerText;
+        let slotHour;
+        
+        if (slotTime.includes('AM') || slotTime.includes('PM')) {
+            slotHour = parseInt(convertTo24Hour(slotTime).split(':')[0]);
+        } else {
+            slotHour = parseInt(slotTime.split(':')[0]);
+        }
+        
+        if (slotHour >= startHour && slotHour < endHour) {
+            slot.classList.add('selected');
+        }
+    });
+}
+
+// Live Search Functionality
+const scheduleSearchInput = document.getElementById('scheduleSearch');
+if (scheduleSearchInput) {
+    scheduleSearchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        // Search in desktop table
+        document.querySelectorAll('.desktop-table .admin-table tbody tr').forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+        
+        // Search in mobile cards
+        document.querySelectorAll('.mobile-cards .schedule-card').forEach(card => {
+            const text = card.textContent.toLowerCase();
+            card.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
 }
 
 const deleteModal = document.getElementById('deleteModal');
@@ -855,12 +990,19 @@ const deleteMessage = document.getElementById('deleteMessage');
 
 function openDeleteScheduleModal(id, facility, date){
     deleteModal.style.display = 'flex';
-    deleteMessage.textContent = `Are you sure you want to delete schedule "${facility}" on ${date}?`;
+    const formattedDate = new Date(date).toLocaleDateString('en-GB', { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric' 
+    });
+    deleteMessage.textContent = `Are you sure you want to delete schedule "${facility}" on ${formattedDate}?`;
     deleteForm.action = `/admin/schedule/delete/${id}`;
 }
 
-closeDeleteModal.addEventListener('click', ()=> deleteModal.style.display='none');
-window.addEventListener('click', e => { if(e.target==deleteModal) deleteModal.style.display='none'; });
+closeDeleteModal.addEventListener('click', () => deleteModal.style.display = 'none');
+window.addEventListener('click', e => { 
+    if(e.target == deleteModal) deleteModal.style.display = 'none'; 
+});
 
 let adminStartSlot = null;
 let adminStartIndex = null;
@@ -879,7 +1021,8 @@ function loadAdminSlots() {
 
     if (!facility || !date) return;
 
-    fetch(`/slots?facility_type=${facility}&date=${date}`)
+    // Use facility_type parameter to match SlotController
+    fetch(`/slots?facility=${encodeURIComponent(facility)}&date=${date}`)
         .then(res => res.json())
         .then(data => {
             const container = document.getElementById('admin-slots');
@@ -887,7 +1030,7 @@ function loadAdminSlots() {
             resetAdminSlotsSelection();
 
             if (!data.length) {
-                container.innerHTML = "<p style='color:#888;'>No slots</p>";
+                container.innerHTML = "<p style='color:#888; font-size: 13px;'>No slots available</p>";
                 return;
             }
 
@@ -896,7 +1039,7 @@ function loadAdminSlots() {
                 div.classList.add('slot', slot.type);
                 div.innerText = slot.time;
                 
-                // Make free slots clickable
+                // Allow clicking on free slots only for selection
                 if (slot.type === 'free') {
                     div.style.cursor = 'pointer';
                     div.addEventListener('click', () => handleAdminSlotClick(index, data));
@@ -910,7 +1053,6 @@ function loadAdminSlots() {
 function handleAdminSlotClick(index, data) {
     const slots = document.querySelectorAll('#admin-slots .slot');
 
-    // First click: select start
     if (adminStartSlot === null) {
         adminStartSlot = data[index].time;
         adminStartIndex = index;
@@ -920,7 +1062,6 @@ function handleAdminSlotClick(index, data) {
         return;
     }
 
-    // Reset if click before or at start
     if (index <= adminStartIndex) {
         resetAdminSlotsSelection();
         adminStartSlot = data[index].time;
@@ -930,7 +1071,6 @@ function handleAdminSlotClick(index, data) {
         return;
     }
 
-    // Second click: check all slots in the range are free
     for (let i = adminStartIndex; i <= index; i++) {
         if (!slots[i].classList.contains('free')) {
             alert('Some slots in between are already booked or blocked.');
@@ -938,7 +1078,6 @@ function handleAdminSlotClick(index, data) {
         }
     }
 
-    // Highlight selected range
     highlightAdminRange(adminStartIndex, index);
     setAdminBooking(adminStartIndex, index + 1, data);
 }
@@ -950,12 +1089,8 @@ function highlightAdminRange(start, end) {
 }
 
 function setAdminBooking(startIdx, endIdx, data) {
-    // Get start time from first selected slot
-    const startTime = data[startIdx].time; // e.g., "08:00"
-    
-    // Get end time: last selected slot's hour + 1
-    // endIdx is the index AFTER the last selected slot, so endIdx-1 is the last selected
-    const lastSlotTime = data[endIdx - 1].time; // e.g., "09:00"
+    const startTime = data[startIdx].time;
+    const lastSlotTime = data[endIdx - 1].time;
     const lastHour = parseInt(lastSlotTime.split(':')[0]);
     const endHour = lastHour + 1;
     const endTime = String(endHour).padStart(2, '0') + ':00';
@@ -964,7 +1099,6 @@ function setAdminBooking(startIdx, endIdx, data) {
     inputEndTime.value = endTime;
 }
 
-// Convert 12-hour format to 24-hour format
 function convertTo24Hour(time12h) {
     const [time, modifier] = time12h.split(' ');
     let [hours, minutes] = time.split(':');
@@ -980,11 +1114,7 @@ function convertTo24Hour(time12h) {
     return `${String(hours).padStart(2, '0')}:${minutes}`;
 }
 
-// Auto refresh when admin changes inputs
 inputFacility.addEventListener('change', loadAdminSlots);
 inputDate.addEventListener('change', loadAdminSlots);
 </script>
-
-
-</body>
-</html>
+@endsection

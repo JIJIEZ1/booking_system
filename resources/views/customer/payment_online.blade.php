@@ -193,6 +193,78 @@ footer { background: var(--main-orange); color: #fff; text-align:center; padding
     .menu-toggle { display:block; }
     .container { padding:25px 20px; margin:20px; }
 }
+
+/* QR Code Card Styles */
+.qr-card {
+    background: white;
+    padding: 25px 20px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.qr-title {
+    color: var(--main-orange);
+    font-weight: 700;
+    font-size: 22px;
+    margin-bottom: 20px;
+}
+
+.qr-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.qr-image {
+    max-width: 100%;
+    width: 370px;
+    height: auto;
+    aspect-ratio: 370 / 450; /* Maintains the original ratio */
+    border-radius: 12px;
+    border: 2px solid var(--main-orange);
+    object-fit: contain;
+}
+
+.qr-instruction {
+    font-size: 15px;
+    color: var(--text-dark);
+    line-height: 1.5;
+    padding: 0 10px;
+}
+
+/* Responsive QR Code */
+@media(max-width: 768px) {
+    .qr-card {
+        padding: 20px 15px;
+    }
+    
+    .qr-title {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+    
+    .qr-image {
+        width: 100%;
+        max-width: 320px;
+    }
+    
+    .qr-instruction {
+        font-size: 14px;
+    }
+}
+
+@media(max-width: 480px) {
+    .qr-card {
+        padding: 15px 10px;
+    }
+    
+    .qr-image {
+        max-width: 280px;
+    }
+}
 </style>
 </head>
 <body>
@@ -241,10 +313,12 @@ footer { background: var(--main-orange); color: #fff; text-align:center; padding
     </div>
 
     <!-- QR Code Card -->
-    <div style="background:white; padding:20px; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.15); text-align:center; margin-bottom:25px;">
-        <h3 style="color:var(--main-orange); font-weight:700; margin-bottom:15px;">Scan to Pay</h3>
-        <img src="{{ asset('images/qr_placeholder.jpeg') }}" alt="QR Code" style="width:370px; height:450px; margin-bottom:15px; border-radius:12px; border:2px solid var(--main-orange);">
-        <p style="font-size:15px; color:var(--text-dark);">Use your mobile banking app or e-wallet to scan this QR code.</p>
+    <div class="qr-card">
+        <h3 class="qr-title">Scan to Pay</h3>
+        <div class="qr-image-container">
+            <img src="{{ asset('images/qr_placeholder.jpeg') }}" alt="QR Code" class="qr-image">
+        </div>
+        <p class="qr-instruction">Use your mobile banking app or e-wallet to scan this QR code.</p>
     </div>
 
     <!-- Booking Details Table -->
@@ -284,7 +358,7 @@ footer { background: var(--main-orange); color: #fff; text-align:center; padding
         <input type="hidden" name="payment_method" value="Online Payment">
         <input type="hidden" name="status" value="Pending">
 
-        <label style="font-weight:400; display:block; margin-bottom:8px;">Upload Payment Receipt</label>
+        <label style="font-weight:600; display:block; margin-bottom:8px;">Upload Payment Receipt</label>
         <input type="file" name="receipt" accept="image/*,application/pdf" required style="margin-bottom:20px;">
 
         <button type="submit"><i class="fa fa-credit-card"></i> Confirm Payment</button>

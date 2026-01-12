@@ -256,7 +256,7 @@
 <div class="social-icons">
     <!-- Facebook Icon -->
     <a href="https://www.facebook.com/pktdr/photos?locale=id_ID" target="_blank">
-        <i class="fa fa-facebook-square" style="font-size: 36px;"></i>
+        <i class="fa-brands fa-square-facebook" aria-hidden="true" style="font-size: 36px;"></i>
     </a>
 </div>
 
