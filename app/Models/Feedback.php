@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class Feedback extends Model
 {
     protected $table = 'feedback';
-    protected $primaryKey = 'feedback_id';   // Important
-    public $incrementing = false;            // Because it's a string
+    protected $primaryKey = 'feedback_id';
+    public $incrementing = false;
     protected $keyType = 'string';
+    public $timestamps = true;
 
     protected $fillable = [
         'feedback_id',
@@ -21,13 +22,19 @@ class Feedback extends Model
         'replied_by',
     ];
 
+    protected $casts = [
+        'rating' => 'integer',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     public function customer()
     {
-        return $this->belongsTo(Customer::class);
+        return $this->belongsTo(Customer::class, 'customer_id', 'id');
     }
 
     public function booking()
     {
-        return $this->belongsTo(Booking::class);
+        return $this->belongsTo(Booking::class, 'booking_id', 'id');
     }
 }
